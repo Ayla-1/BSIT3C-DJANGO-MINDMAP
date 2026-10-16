@@ -1,1 +1,3 @@
-# BSIT3-C-DJANGO-WOWOWIN
+Cayao, Kristel Ayla P.
+Claro, Asheralyn P.
+Fernandez, Wendelyn V.
