@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{% if grade %}Edit{% else %}Add{% endif %} Grade - Teacher{% endblock %}
+{% block sidebar %}
+<a class="nav-link" href="{% url 'teacher_dashboard' %}"><i>📊</i> Dashboard</a>
+<a class="nav-link" href="{% url 'teacher_students' %}"><i>👨‍🎓</i> Students</a>
+<a class="nav-link active" href="{% url 'teacher_grades' %}"><i>📝</i> Grades</a>
+<a class="nav-link" href="{% url 'teacher_assessments' %}"><i>📋</i> Assessments</a>
+<a class="nav-link" href="{% url 'teacher_progress' %}"><i>📈</i> Progress</a>
+{% endblock %}
+{% block content %}
+<div class="page-header"><h1>{% if grade %}Edit{% else %}Add New{% endif %} Grade</h1></div>
+<div class="row"><div class="col-md-8"><div class="card"><div class="card-body">
+<form method="post">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Student *</label>
+            {% if grade %}
+            <input type="text" class="form-control" value="{{ grade.student.get_full_name }}" readonly>
+            {% else %}
+            <select class="form-select" name="student_id" required>
+                <option value="">Select Student</option>
+                {% for student in students %}
+                <option value="{{ student.student_id }}">{{ student.student_number }} - {{ student.get_full_name }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Subject *</label>
+            {% if grade %}
+            <input type="text" class="form-control" value="{{ grade.subject.subject_code }}" readonly>
+            {% else %}
+            <select class="form-select" name="subject_id" required>
+                <option value="">Select Subject</option>
+                {% for subject in subjects %}
+                <option value="{{ subject.subject_id }}">{{ subject.subject_code }} - {{ subject.subject_name }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">School Year *</label>
+            <input type="text" class="form-control" name="school_year" value="{{ grade.school_year }}" placeholder="e.g., 2023-2024" required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Semester *</label>
+            <select class="form-select" name="semester" required>
+                <option value="">Select Semester</option>
+                <option value="1st Semester" {% if grade.semester == "1st Semester" %}selected{% endif %}>1st Semester</option>
+                <option value="2nd Semester" {% if grade.semester == "2nd Semester" %}selected{% endif %}>2nd Semester</option>
+                <option value="Summer" {% if grade.semester == "Summer" %}selected{% endif %}>Summer</option>
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Prelim Grade</label>
+            <input type="number" step="0.01" class="form-control" name="prelim" value="{{ grade.prelim }}">
+        </div>
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Midterm Grade</label>
+            <input type="number" step="0.01" class="form-control" name="midterm" value="{{ grade.midterm }}">
+        </div>
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Finals Grade</label>
+            <input type="number" step="0.01" class="form-control" name="finals" value="{{ grade.finals }}">
+        </div>
+    </div>
+    <div class="alert alert-info">
+        <small>Final grade and remarks will be automatically calculated based on prelim, midterm, and finals grades.</small>
+    </div>
+    <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'teacher_grades' %}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">{% if grade %}Update{% else %}Add{% endif %} Grade</button>
+    </div>
+</form>
+</div></div></div></div>
+{% endblock %}

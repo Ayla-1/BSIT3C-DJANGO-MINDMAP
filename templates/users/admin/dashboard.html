@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - MindMap{% endblock %}
+
+{% block sidebar %}
+<a class="nav-link active" href="{% url 'admin_dashboard' %}">
+    <i>📊</i> Dashboard
+</a>
+<a class="nav-link" href="{% url 'admin_students' %}">
+    <i>👨‍🎓</i> Students
+</a>
+<a class="nav-link" href="{% url 'admin_teachers' %}">
+    <i>👩‍🏫</i> Teachers
+</a>
+<a class="nav-link" href="{% url 'admin_subjects' %}">
+    <i>📚</i> Subjects
+</a>
+<hr style="border-color: var(--pink-light); margin: 1rem 0.5rem;">
+<a class="nav-link text-danger" href="{% url 'logout' %}">
+    <i>🚪</i> Logout
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Admin Dashboard</h1>
+    <p>Welcome, {{ user.get_full_name|default:user.username }}!</p>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <h3>{{ total_students }}</h3>
+            <p>Total Students</p>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <h3>{{ total_teachers }}</h3>
+            <p>Total Teachers</p>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <h3>{{ total_subjects }}</h3>
+            <p>Total Subjects</p>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <h3>{{ total_grades }}</h3>
+            <p>Total Grades</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Students</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student Number</th>
+                                <th>Name</th>
+                                <th>Course</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in recent_students %}
+                            <tr>
+                                <td>{{ student.student_number }}</td>
+                                <td>{{ student.get_full_name }}</td>
+                                <td>{{ student.course|default:"-" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No students found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Teachers</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Department</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for teacher in recent_teachers %}
+                            <tr>
+                                <td>{{ teacher.get_full_name }}</td>
+                                <td>{{ teacher.email }}</td>
+                                <td>{{ teacher.department|default:"-" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No teachers found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

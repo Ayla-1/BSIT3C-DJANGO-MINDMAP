@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Progress - Teacher{% endblock %}
+{% block sidebar %}
+<a class="nav-link" href="{% url 'teacher_dashboard' %}"><i>📊</i> Dashboard</a>
+<a class="nav-link" href="{% url 'teacher_students' %}"><i>👨‍🎓</i> Students</a>
+<a class="nav-link" href="{% url 'teacher_grades' %}"><i>📝</i> Grades</a>
+<a class="nav-link" href="{% url 'teacher_assessments' %}"><i>📋</i> Assessments</a>
+<a class="nav-link active" href="{% url 'teacher_progress' %}"><i>📈</i> Progress</a>
+{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center"><div><h1>Academic Progress</h1></div><a href="{% url 'teacher_progress_create' %}" class="btn btn-primary">➕ Add Progress Record</a></div>
+<div class="card"><div class="card-body"><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Student</th><th>Category</th><th>Status</th><th>Date</th><th>Observation</th></tr></thead><tbody>
+{% for p in progress_records %}<tr><td>{{ p.student.get_full_name }}</td><td>{{ p.progress_category }}</td><td><span class="badge bg-primary">{{ p.status }}</span></td><td>{{ p.assessment_date|date:"M d, Y" }}</td><td>{{ p.observation|truncatewords:15 }}</td></tr>
+{% empty %}<tr><td colspan="5" class="text-center text-muted py-4">No progress records</td></tr>{% endfor %}
+</tbody></table></div></div></div>
+{% endblock %}

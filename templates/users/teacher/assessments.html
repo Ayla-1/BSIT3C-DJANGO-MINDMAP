@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Assessments - Teacher{% endblock %}
+{% block sidebar %}
+<a class="nav-link" href="{% url 'teacher_dashboard' %}"><i>📊</i> Dashboard</a>
+<a class="nav-link" href="{% url 'teacher_students' %}"><i>👨‍🎓</i> Students</a>
+<a class="nav-link" href="{% url 'teacher_grades' %}"><i>📝</i> Grades</a>
+<a class="nav-link active" href="{% url 'teacher_assessments' %}"><i>📋</i> Assessments</a>
+<a class="nav-link" href="{% url 'teacher_progress' %}"><i>📈</i> Progress</a>
+{% endblock %}
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center"><div><h1>Learning Assessments</h1></div><a href="{% url 'teacher_assessment_create' %}" class="btn btn-primary">➕ Add Assessment</a></div>
+<div class="card"><div class="card-header"><h3 class="card-title">Assessment Records</h3></div><div class="card-body"><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Student</th><th>Subject</th><th>Skill Area</th><th>Score</th><th>Date</th><th>Actions</th></tr></thead><tbody>
+{% for a in assessments %}<tr><td>{{ a.student.student_number }}</td><td>{{ a.subject.subject_code }}</td><td>{{ a.skill_area }}</td><td>{% if a.score and a.max_score %}{{ a.score }}/{{ a.max_score }} ({{ a.get_percentage|floatformat:1 }}%){% else %}-{% endif %}</td><td>{{ a.assessment_date|date:"M d, Y" }}</td><td><a href="{% url 'teacher_assessment_edit' a.assessment_id %}" class="btn btn-sm btn-outline-primary">Edit</a></td></tr>
+{% empty %}<tr><td colspan="6" class="text-center text-muted py-4">No assessments found</td></tr>{% endfor %}
+</tbody></table></div></div></div>
+{% endblock %}

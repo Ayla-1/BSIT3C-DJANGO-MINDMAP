@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Teachers - Admin{% endblock %}
+
+{% block sidebar %}
+<a class="nav-link" href="{% url 'admin_dashboard' %}">
+    <i>📊</i> Dashboard
+</a>
+<a class="nav-link" href="{% url 'admin_students' %}">
+    <i>👨‍🎓</i> Students
+</a>
+<a class="nav-link active" href="{% url 'admin_teachers' %}">
+    <i>👩‍🏫</i> Teachers
+</a>
+<a class="nav-link" href="{% url 'admin_subjects' %}">
+    <i>📚</i> Subjects
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1>Manage Teachers</h1>
+        <p>Add, edit, or remove teacher accounts</p>
+    </div>
+    <a href="{% url 'admin_teacher_create' %}" class="btn btn-primary">
+        ➕ Add New Teacher
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Teacher List</h3>
+        <div class="card-actions">
+            <form method="get" class="d-flex">
+                <input type="text" name="search" class="form-control me-2" 
+                       placeholder="Search teachers..." value="{{ search_query }}">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for teacher in teachers %}
+                    <tr>
+                        <td><strong>{{ teacher.get_full_name }}</strong></td>
+                        <td>{{ teacher.email }}</td>
+                        <td>{{ teacher.department|default:"-" }}</td>
+                        <td>
+                            <a href="{% url 'admin_teacher_edit' teacher.teacher_id %}" 
+                               class="btn btn-sm btn-outline-primary">Edit</a>
+                            <form method="post" action="{% url 'admin_teacher_delete' teacher.teacher_id %}" 
+                                  style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this teacher?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">No teachers found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

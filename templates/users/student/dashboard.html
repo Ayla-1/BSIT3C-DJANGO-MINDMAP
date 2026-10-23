@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard - MindMap{% endblock %}
+{% block sidebar %}
+<a class="nav-link active" href="{% url 'student_dashboard' %}"><i>📊</i> Dashboard</a>
+<a class="nav-link" href="{% url 'student_grades' %}"><i>📝</i> My Grades</a>
+<a class="nav-link" href="{% url 'student_assessments' %}"><i>📋</i> Assessments</a>
+<a class="nav-link" href="{% url 'student_progress' %}"><i>📈</i> Progress</a>
+<a class="nav-link" href="{% url 'student_report' %}"><i>📄</i> Progress Report</a>
+<hr style="border-color: var(--pink-light); margin: 1rem 0.5rem;">
+<a class="nav-link text-danger" href="{% url 'logout' %}"><i>🚪</i> Logout</a>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Student Dashboard</h1>
+    <p>Welcome, {{ student.get_full_name }}!</p>
+    <p class="mb-0"><strong>Student Number:</strong> {{ student.student_number }} | <strong>Course:</strong> {{ student.course }} {{ student.year_level }}-{{ student.section }}</p>
+</div>
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="stat-card">
+            <h3>{{ total_grades }}</h3>
+            <p>Total Grades</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="stat-card">
+            <h3>{{ avg_grade|floatformat:2|default:"N/A" }}</h3>
+            <p>Average Grade</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="stat-card">
+            <h3>{{ recent_assessments|length }}</h3>
+            <p>Assessments</p>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Grades</h3>
+                <div class="card-actions"><a href="{% url 'student_grades' %}" class="btn btn-sm btn-primary">View All</a></div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead><tr><th>Subject</th><th>Final Grade</th><th>Remarks</th></tr></thead>
+                        <tbody>
+                            {% for grade in recent_grades %}
+                            <tr>
+                                <td><strong>{{ grade.subject.subject_code }}</strong><br><small>{{ grade.school_year }} - {{ grade.semester }}</small></td>
+                                <td><strong>{{ grade.final_grade|default:"-" }}</strong></td>
+                                <td><span class="badge {% if grade.remarks == 'PASSED' %}bg-success{% else %}bg-danger{% endif %}">{{ grade.remarks|default:"-" }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted">No grades yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Recent Assessments</h3>
+                <div class="card-actions"><a href="{% url 'student_assessments' %}" class="btn btn-sm btn-primary">View All</a></div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead><tr><th>Skill Area</th><th>Score</th><th>Date</th></tr></thead>
+                        <tbody>
+                            {% for assessment in recent_assessments %}
+                            <tr>
+                                <td><strong>{{ assessment.skill_area }}</strong><br><small>{{ assessment.subject.subject_code }}</small></td>
+                                <td>{% if assessment.score and assessment.max_score %}{{ assessment.score }}/{{ assessment.max_score }}{% else %}-{% endif %}</td>
+                                <td>{{ assessment.assessment_date|date:"M d, Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted">No assessments yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% if recent_progress %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Recent Progress Updates</h3>
+        <div class="card-actions"><a href="{% url 'student_progress' %}" class="btn btn-sm btn-primary">View All</a></div>
+    </div>
+    <div class="card-body">
+        {% for progress in recent_progress %}
+        <div class="mb-3 p-3" style="background: white; border-radius: 8px;">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <strong>{{ progress.progress_category }}</strong>
+                <span class="badge bg-primary">{{ progress.status }}</span>
+            </div>
+            <p class="mb-1"><small>{{ progress.observation|truncatewords:20 }}</small></p>
+            <small class="text-muted">{{ progress.assessment_date|date:"M d, Y" }} - By {{ progress.teacher.get_full_name }}</small>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

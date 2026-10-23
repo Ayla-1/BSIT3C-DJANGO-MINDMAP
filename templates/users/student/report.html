@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Progress Report - Student{% endblock %}
+{% block sidebar %}
+<a class="nav-link" href="{% url 'student_dashboard' %}"><i>📊</i> Dashboard</a>
+<a class="nav-link" href="{% url 'student_grades' %}"><i>📝</i> My Grades</a>
+<a class="nav-link" href="{% url 'student_assessments' %}"><i>📋</i> Assessments</a>
+<a class="nav-link" href="{% url 'student_progress' %}"><i>📈</i> Progress</a>
+<a class="nav-link active" href="{% url 'student_report' %}"><i>📄</i> Progress Report</a>
+{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Comprehensive Progress Report</h1><p>{{ student.get_full_name }} - {{ student.student_number }}</p></div>
+<div class="row mb-4">
+<div class="col-md-3"><div class="stat-card"><h3>{{ avg_grade|floatformat:2|default:"N/A" }}</h3><p>Average Grade</p></div></div>
+<div class="col-md-3"><div class="stat-card"><h3>{{ passed_count }}</h3><p>Subjects Passed</p></div></div>
+<div class="col-md-3"><div class="stat-card"><h3>{{ failed_count }}</h3><p>Subjects Failed</p></div></div>
+<div class="col-md-3"><div class="stat-card"><h3>{{ total_assessments }}</h3><p>Total Assessments</p></div></div>
+</div>
+<div class="row">
+<div class="col-md-6 mb-4"><div class="card"><div class="card-header"><h3 class="card-title">My Strengths</h3></div><div class="card-body">
+{% if strengths_list %}
+<ul>{% for strength in strengths_list %}<li>{{ strength }}</li>{% endfor %}</ul>
+{% else %}
+<p class="text-muted">No strengths recorded yet</p>
+{% endif %}
+</div></div></div>
+<div class="col-md-6 mb-4"><div class="card"><div class="card-header"><h3 class="card-title">Areas to Improve</h3></div><div class="card-body">
+{% if improvements_list %}
+<ul>{% for improvement in improvements_list %}<li>{{ improvement }}</li>{% endfor %}</ul>
+{% else %}
+<p class="text-muted">No areas to improve recorded yet</p>
+{% endif %}
+</div></div></div>
+</div>
+<div class="card"><div class="card-header"><h3 class="card-title">Recent Progress Updates</h3></div><div class="card-body">
+{% for p in latest_progress %}
+<div class="mb-3 p-3" style="background: white; border-radius: 8px;">
+<div class="d-flex justify-content-between mb-2"><strong>{{ p.progress_category }}</strong><span class="badge bg-primary">{{ p.status }}</span></div>
+<p class="mb-1">{{ p.observation }}</p>
+<small class="text-muted">{{ p.assessment_date|date:"F d, Y" }}</small>
+</div>
+{% empty %}
+<p class="text-muted">No progress updates yet</p>
+{% endfor %}
+</div></div>
+{% endblock %}

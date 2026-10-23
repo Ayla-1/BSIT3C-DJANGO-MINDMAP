@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard - MindMap{% endblock %}
+{% block sidebar %}
+<a class="nav-link active" href="{% url 'teacher_dashboard' %}"><i>📊</i> Dashboard</a>
+<a class="nav-link" href="{% url 'teacher_students' %}"><i>👨‍🎓</i> Students</a>
+<a class="nav-link" href="{% url 'teacher_grades' %}"><i>📝</i> Grades</a>
+<a class="nav-link" href="{% url 'teacher_assessments' %}"><i>📋</i> Assessments</a>
+<a class="nav-link" href="{% url 'teacher_progress' %}"><i>📈</i> Progress</a>
+<hr style="border-color: var(--pink-light); margin: 1rem 0.5rem;">
+<a class="nav-link text-danger" href="{% url 'logout' %}"><i>🚪</i> Logout</a>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Teacher Dashboard</h1>
+    <p>Welcome, {{ teacher.get_full_name }}!</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <h3>{{ total_subjects }}</h3>
+            <p>My Subjects</p>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <h3>{{ total_students }}</h3>
+            <p>Total Students</p>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <h3>{{ recent_grades|length }}</h3>
+            <p>Recent Grades</p>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="stat-card">
+            <h3>{{ recent_assessments|length }}</h3>
+            <p>Recent Assessments</p>
+        </div>
+    </div>
+</div>
+
+<!-- Student Management Section -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">Student Management</h3>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+            <i>➕</i> Add Student
+        </button>
+    </div>
+    <div class="card-body">
+        <!-- Filter Form -->
+        <form method="GET" class="mb-3">
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <select name="course" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Courses</option>
+                        {% for course in all_courses %}
+                        <option value="{{ course }}" {% if course == course_filter %}selected{% endif %}>{{ course }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="year" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Year Levels</option>
+                        {% for year in all_years %}
+                        <option value="{{ year }}" {% if year|stringformat:"s" == year_filter %}selected{% endif %}>Year {{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="section" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Sections</option>
+                        {% for section in all_sections %}
+                        <option value="{{ section }}" {% if section == section_filter %}selected{% endif %}>{{ section }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    {% if course_filter or year_filter or section_filter %}
+                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-outline-secondary w-100">Clear Filters</a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+
+        <!-- Students Table -->
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Student Number</th>
+                        <th>Name</th>
+                        <th>Course</th>
+                        <th>Year</th>
+                        <th>Section</th>
+                        <th>Email</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td><strong>{{ student.student_number }}</strong></td>
+                        <td>{{ student.get_full_name }}</td>
+                        <td>{{ student.course|default:"-" }}</td>
+                        <td>{{ student.year_level|default:"-" }}</td>
+                        <td><span class="badge bg-primary">{{ student.section|default:"-" }}</span></td>
+                        <td>{{ student.email|default:"-" }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewStudent({{ student.student_id }})">
+                                <i>👁️</i> View
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            No students found{% if course_filter or year_filter or section_filter %} with the selected filters{% endif %}.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Subject and Grades Overview -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">My Subjects</h3></div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead><tr><th>Code</th><th>Subject Name</th><th>Units</th></tr></thead>
+                        <tbody>
+                            {% for subject in my_subjects %}
+                            <tr><td><strong>{{ subject.subject_code }}</strong></td><td>{{ subject.subject_name }}</td><td>{{ subject.units }}</td></tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted">No subjects assigned</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Recent Grades</h3></div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead><tr><th>Student</th><th>Subject</th><th>Final Grade</th></tr></thead>
+                        <tbody>
+                            {% for grade in recent_grades %}
+                            <tr><td>{{ grade.student.get_full_name }}</td><td>{{ grade.subject.subject_code }}</td><td><strong>{{ grade.final_grade|default:"-" }}</strong></td></tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted">No grades recorded</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: var(--pink-lighter);">
+            <div class="modal-header" style="border-bottom: 2px solid var(--pink-light);">
+                <h5 class="modal-title" id="addStudentModalLabel" style="color: var(--pink-primary);">Add New Student</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'teacher_add_student' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="student_number" class="form-label">Student Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="student_number" name="student_number" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="gender" class="form-label">Gender</label>
+                            <select class="form-select" id="gender" name="gender">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="birthdate" class="form-label">Birthdate</label>
+                            <input type="date" class="form-control" id="birthdate" name="birthdate">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="course" class="form-label">Course <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="course" name="course" placeholder="e.g., BSIT" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="year_level" class="form-label">Year Level <span class="text-danger">*</span></label>
+                            <select class="form-select" id="year_level" name="year_level" required>
+                                <option value="">Select Year</option>
+                                <option value="1">1st Year</option>
+                                <option value="2">2nd Year</option>
+                                <option value="3">3rd Year</option>
+                                <option value="4">4th Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="section" class="form-label">Section <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="section" name="section" placeholder="e.g., A, B, C" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="enrollment_date" class="form-label">Enrollment Date</label>
+                        <input type="date" class="form-control" id="enrollment_date" name="enrollment_date" value="{{ today }}">
+                    </div>
+                    <div class="alert alert-info">
+                        <small><strong>Note:</strong> A user account will be automatically created with username = student number and default password = "student123"</small>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 2px solid var(--pink-light);">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function viewStudent(studentId) {
+    // You can implement a view student detail modal here
+    alert('View student details for ID: ' + studentId);
+}
+</script>
+{% endblock %}

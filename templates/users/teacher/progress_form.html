@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Add Progress - Teacher{% endblock %}
+{% block sidebar %}
+<a class="nav-link" href="{% url 'teacher_dashboard' %}"><i>📊</i> Dashboard</a>
+<a class="nav-link" href="{% url 'teacher_students' %}"><i>👨‍🎓</i> Students</a>
+<a class="nav-link" href="{% url 'teacher_grades' %}"><i>📝</i> Grades</a>
+<a class="nav-link" href="{% url 'teacher_assessments' %}"><i>📋</i> Assessments</a>
+<a class="nav-link active" href="{% url 'teacher_progress' %}"><i>📈</i> Progress</a>
+{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Add Progress Record</h1></div>
+<div class="row"><div class="col-md-10"><div class="card"><div class="card-body"><form method="post">{% csrf_token %}
+<div class="row">
+<div class="col-md-6 mb-3"><label class="form-label">Student *</label><select class="form-select" name="student_id" required><option value="">Select Student</option>{% for s in students %}<option value="{{ s.student_id }}">{{ s.student_number }} - {{ s.get_full_name }}</option>{% endfor %}</select></div>
+<div class="col-md-6 mb-3"><label class="form-label">Assessment Date *</label><input type="date" class="form-control" name="assessment_date" required></div>
+</div>
+<div class="row">
+<div class="col-md-6 mb-3"><label class="form-label">Progress Category</label><input type="text" class="form-control" name="progress_category" placeholder="e.g., Academic Performance"></div>
+<div class="col-md-6 mb-3"><label class="form-label">Status *</label><select class="form-select" name="status" required><option value="Improving">Improving</option><option value="Needs Improvement">Needs Improvement</option><option value="Excellent">Excellent</option><option value="At Risk">At Risk</option></select></div>
+</div>
+<div class="mb-3"><label class="form-label">Observation *</label><textarea class="form-control" name="observation" rows="4" required></textarea></div>
+<div class="mb-3"><label class="form-label">Recommendation</label><textarea class="form-control" name="recommendation" rows="3"></textarea></div>
+<div class="d-flex justify-content-between mt-4"><a href="{% url 'teacher_progress' %}" class="btn btn-secondary">Cancel</a><button type="submit" class="btn btn-primary">Add Progress Record</button></div>
+</form></div></div></div></div>
+{% endblock %}

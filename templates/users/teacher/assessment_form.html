@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{% if assessment %}Edit{% else %}Add{% endif %} Assessment - Teacher{% endblock %}
+{% block sidebar %}
+<a class="nav-link" href="{% url 'teacher_dashboard' %}"><i>📊</i> Dashboard</a>
+<a class="nav-link" href="{% url 'teacher_students' %}"><i>👨‍🎓</i> Students</a>
+<a class="nav-link" href="{% url 'teacher_grades' %}"><i>📝</i> Grades</a>
+<a class="nav-link active" href="{% url 'teacher_assessments' %}"><i>📋</i> Assessments</a>
+<a class="nav-link" href="{% url 'teacher_progress' %}"><i>📈</i> Progress</a>
+{% endblock %}
+{% block content %}
+<div class="page-header"><h1>{% if assessment %}Edit{% else %}Add{% endif %} Assessment</h1></div>
+<div class="row"><div class="col-md-10"><div class="card"><div class="card-body"><form method="post">{% csrf_token %}
+<div class="row">
+<div class="col-md-6 mb-3"><label class="form-label">Student *</label>{% if assessment %}<input type="text" class="form-control" value="{{ assessment.student.get_full_name }}" readonly>{% else %}<select class="form-select" name="student_id" required><option value="">Select Student</option>{% for s in students %}<option value="{{ s.student_id }}">{{ s.student_number }} - {{ s.get_full_name }}</option>{% endfor %}</select>{% endif %}</div>
+<div class="col-md-6 mb-3"><label class="form-label">Subject *</label>{% if assessment %}<input type="text" class="form-control" value="{{ assessment.subject.subject_code }}" readonly>{% else %}<select class="form-select" name="subject_id" required><option value="">Select Subject</option>{% for sub in subjects %}<option value="{{ sub.subject_id }}">{{ sub.subject_code }}</option>{% endfor %}</select>{% endif %}</div>
+</div>
+<div class="row">
+<div class="col-md-6 mb-3"><label class="form-label">Skill Area *</label><input type="text" class="form-control" name="skill_area" value="{{ assessment.skill_area }}" required></div>
+<div class="col-md-6 mb-3"><label class="form-label">Assessment Type</label><input type="text" class="form-control" name="assessment_type" value="{{ assessment.assessment_type }}" placeholder="e.g., Quiz, Exam, Project"></div>
+</div>
+<div class="row">
+<div class="col-md-4 mb-3"><label class="form-label">Assessment Date *</label><input type="date" class="form-control" name="assessment_date" value="{{ assessment.assessment_date|date:'Y-m-d' }}" required></div>
+<div class="col-md-4 mb-3"><label class="form-label">Score</label><input type="number" step="0.01" class="form-control" name="score" value="{{ assessment.score }}"></div>
+<div class="col-md-4 mb-3"><label class="form-label">Max Score</label><input type="number" step="0.01" class="form-control" name="max_score" value="{{ assessment.max_score }}"></div>
+</div>
+<div class="mb-3"><label class="form-label">Strengths</label><textarea class="form-control" name="strengths" rows="3">{{ assessment.strengths }}</textarea></div>
+<div class="mb-3"><label class="form-label">Areas to Improve</label><textarea class="form-control" name="areas_to_improve" rows="3">{{ assessment.areas_to_improve }}</textarea></div>
+<div class="mb-3"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="2">{{ assessment.notes }}</textarea></div>
+<div class="d-flex justify-content-between mt-4"><a href="{% url 'teacher_assessments' %}" class="btn btn-secondary">Cancel</a><button type="submit" class="btn btn-primary">{% if assessment %}Update{% else %}Add{% endif %} Assessment</button></div>
+</form></div></div></div></div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{% if teacher %}Edit{% else %}Add{% endif %} Teacher - Admin{% endblock %}
+{% block sidebar %}
+<a class="nav-link" href="{% url 'admin_dashboard' %}"><i>📊</i> Dashboard</a>
+<a class="nav-link" href="{% url 'admin_students' %}"><i>👨‍🎓</i> Students</a>
+<a class="nav-link active" href="{% url 'admin_teachers' %}"><i>👩‍🏫</i> Teachers</a>
+<a class="nav-link" href="{% url 'admin_subjects' %}"><i>📚</i> Subjects</a>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>{% if teacher %}Edit{% else %}Add New{% endif %} Teacher</h1>
+</div>
+<div class="row"><div class="col-md-8"><div class="card"><div class="card-body">
+<form method="post">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">First Name *</label>
+            <input type="text" class="form-control" name="first_name" value="{{ teacher.first_name }}" required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Last Name *</label>
+            <input type="text" class="form-control" name="last_name" value="{{ teacher.last_name }}" required>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Email *</label>
+            <input type="email" class="form-control" name="email" value="{{ teacher.email }}" {% if teacher %}readonly{% endif %} required>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Department</label>
+            <input type="text" class="form-control" name="department" value="{{ teacher.department }}">
+        </div>
+    </div>
+    {% if not teacher %}
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" name="password" placeholder="Default: teacher123">
+        <small class="text-muted">Leave blank to use default password (teacher123)</small>
+    </div>
+    {% endif %}
+    <div class="d-flex justify-content-between mt-4">
+        <a href="{% url 'admin_teachers' %}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">{% if teacher %}Update{% else %}Create{% endif %} Teacher</button>
+    </div>
+</form>
+</div></div></div></div>
+{% endblock %}

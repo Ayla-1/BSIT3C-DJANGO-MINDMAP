@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% block title %}My Profile - MindMap{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>My Profile</h1>
+    <p>View and manage your account information</p>
+</div>
+
+<div class="row">
+    <!-- Account Information Card -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Account Information</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <td style="width: 40%;"><strong>Username:</strong></td>
+                            <td>{{ user.username }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Full Name:</strong></td>
+                            <td>{{ user.get_full_name|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email:</strong></td>
+                            <td>{{ user.email|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Role:</strong></td>
+                            <td>
+                                <span class="badge" style="background-color: var(--pink-primary); font-size: 0.9rem;">
+                                    {{ role|upper }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Date Joined:</strong></td>
+                            <td>{{ user.date_joined|date:"F d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Last Login:</strong></td>
+                            <td>{{ user.last_login|date:"F d, Y g:i A"|default:"Never" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role-Specific Information Card -->
+    <div class="col-md-6 mb-4">
+        {% if role == 'teacher' and teacher %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Teacher Information</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <td style="width: 40%;"><strong>Teacher ID:</strong></td>
+                            <td>{{ teacher.teacher_id }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Department:</strong></td>
+                            <td>{{ teacher.department|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email:</strong></td>
+                            <td>{{ teacher.email }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Subjects:</strong></td>
+                            <td>{{ my_subjects.count }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                {% if my_subjects %}
+                <hr>
+                <h5 class="mb-3" style="color: var(--pink-primary);">My Subjects</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Subject</th>
+                                <th>Units</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject in my_subjects %}
+                            <tr>
+                                <td><strong>{{ subject.subject_code }}</strong></td>
+                                <td>{{ subject.subject_name }}</td>
+                                <td>{{ subject.units }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% elif role == 'student' and student %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Student Information</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <td style="width: 40%;"><strong>Student Number:</strong></td>
+                            <td>{{ student.student_number }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Course:</strong></td>
+                            <td>{{ student.course|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Year Level:</strong></td>
+                            <td>{% if student.year_level %}Year {{ student.year_level }}{% else %}-{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Section:</strong></td>
+                            <td>{{ student.section|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gender:</strong></td>
+                            <td>{{ student.gender|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Birthdate:</strong></td>
+                            <td>{{ student.birthdate|date:"F d, Y"|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Enrollment Date:</strong></td>
+                            <td>{{ student.enrollment_date|date:"F d, Y"|default:"-" }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <hr>
+                <h5 class="mb-3" style="color: var(--pink-primary);">Academic Summary</h5>
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="p-3" style="background-color: var(--pink-lighter); border-radius: 8px;">
+                            <h4 style="color: var(--pink-primary); margin: 0;">{{ total_grades|default:0 }}</h4>
+                            <small>Total Grades</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="p-3" style="background-color: var(--pink-lighter); border-radius: 8px;">
+                            <h4 style="color: var(--pink-primary); margin: 0;">{{ avg_grade|floatformat:2|default:"N/A" }}</h4>
+                            <small>Average Grade</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% elif role == 'admin' %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Administrator Information</h3>
+            </div>
+            <div class="card-body">
+                <div class="text-center py-4">
+                    <div style="font-size: 4rem; color: var(--pink-primary);">👑</div>
+                    <h4 style="color: var(--pink-primary);">System Administrator</h4>
+                    <p class="text-muted">You have full access to all system features</p>
+                </div>
+                
+                <table class="table table-borderless mt-3">
+                    <tbody>
+                        <tr>
+                            <td style="width: 50%;"><strong>Staff Status:</strong></td>
+                            <td>
+                                <span class="badge bg-success">
+                                    {% if user.is_staff %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Superuser:</strong></td>
+                            <td>
+                                <span class="badge bg-{% if user.is_superuser %}success{% else %}secondary{% endif %}">
+                                    {% if user.is_superuser %}Yes{% else %}No{% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Account Actions Card -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="card-title">Account Actions</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <button class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                    <i>🔒</i> Change Password
+                </button>
+            </div>
+            <div class="col-md-4 mb-3">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-primary w-100">
+                    <i>🏠</i> Go to Dashboard
+                </a>
+            </div>
+            <div class="col-md-4 mb-3">
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100">
+                    <i>🚪</i> Logout
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background-color: var(--pink-lighter);">
+            <div class="modal-header" style="border-bottom: 2px solid var(--pink-light);">
+                <h5 class="modal-title" id="changePasswordModalLabel" style="color: var(--pink-primary);">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'user_profile' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_password">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" required minlength="8">
+                        <small class="text-muted">Minimum 8 characters</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 2px solid var(--pink-light);">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

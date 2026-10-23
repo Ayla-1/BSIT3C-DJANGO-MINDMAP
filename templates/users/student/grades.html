@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}My Grades - Student{% endblock %}
+{% block sidebar %}
+<a class="nav-link" href="{% url 'student_dashboard' %}"><i>📊</i> Dashboard</a>
+<a class="nav-link active" href="{% url 'student_grades' %}"><i>📝</i> My Grades</a>
+<a class="nav-link" href="{% url 'student_assessments' %}"><i>📋</i> Assessments</a>
+<a class="nav-link" href="{% url 'student_progress' %}"><i>📈</i> Progress</a>
+<a class="nav-link" href="{% url 'student_report' %}"><i>📄</i> Progress Report</a>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>My Grades</h1>
+    <p>View all your academic grades</p>
+</div>
+{% if avg_grade %}
+<div class="alert alert-info">
+    <strong>Your Average Grade:</strong> {{ avg_grade|floatformat:2 }}
+</div>
+{% endif %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Grade Records</h3>
+        <div class="card-actions">
+            <form method="get" class="d-flex gap-2">
+                <select name="subject" class="form-select">
+                    <option value="">All Subjects</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.subject_id }}" {% if subject_filter == subject.subject_id|stringformat:"s" %}selected{% endif %}>{{ subject.subject_code }}</option>
+                    {% endfor %}
+                </select>
+                <select name="semester" class="form-select">
+                    <option value="">All Semesters</option>
+                    {% for sem in semesters %}
+                    <option value="{{ sem }}" {% if semester_filter == sem %}selected{% endif %}>{{ sem }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </form>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr><th>Subject</th><th>School Year</th><th>Semester</th><th>Prelim</th><th>Midterm</th><th>Finals</th><th>Final Grade</th><th>Remarks</th></tr>
+                </thead>
+                <tbody>
+                    {% for grade in grades %}
+                    <tr>
+                        <td><strong>{{ grade.subject.subject_code }}</strong><br><small>{{ grade.subject.subject_name }}</small></td>
+                        <td>{{ grade.school_year }}</td>
+                        <td>{{ grade.semester }}</td>
+                        <td>{{ grade.prelim|default:"-" }}</td>
+                        <td>{{ grade.midterm|default:"-" }}</td>
+                        <td>{{ grade.finals|default:"-" }}</td>
+                        <td><strong>{{ grade.final_grade|default:"-" }}</strong></td>
+                        <td><span class="badge {% if grade.remarks == 'PASSED' %}bg-success{% else %}bg-danger{% endif %}">{{ grade.remarks|default:"-" }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="text-center text-muted py-4">No grades found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
