@@ -1,0 +1,82 @@
+====================================================================
+LOGOUT BUTTON FEATURE
+====================================================================
+
+✓ LOGOUT FUNCTIONALITY HAS BEEN ADDED!
+
+There are now TWO ways to logout from the MindMap system:
+
+====================================================================
+1. TOP NAVIGATION BAR (Dropdown Menu)
+====================================================================
+Location: Top-right corner of every page when logged in
+How to use:
+  1. Click on your name in the top-right corner
+  2. A dropdown menu will appear
+  3. Click "Logout"
+
+Available on:
+  ✓ Admin Dashboard
+  ✓ Teacher Dashboard
+  ✓ Student Dashboard
+  ✓ All other authenticated pages
+
+====================================================================
+2. SIDEBAR LOGOUT BUTTON (Direct Link)
+====================================================================
+Location: At the bottom of the left sidebar
+Appearance: Red "🚪 Logout" button with separator line above it
+
+Available on:
+  ✓ Admin Dashboard & all admin pages
+  ✓ Teacher Dashboard & all teacher pages
+  ✓ Student Dashboard & all student pages
+
+Visual Design:
+  - Red text color (#dc3545)
+  - Bold font weight
+  - Hover effect: Changes to red background with white text
+  - Separated from other menu items with a horizontal line
+
+====================================================================
+LOGOUT URL
+====================================================================
+Direct logout URL: http://localhost:8000/logout/
+
+What happens when you logout:
+  1. Your session is terminated
+  2. You are redirected to the login page
+  3. You need to login again to access the system
+
+====================================================================
+TESTING THE LOGOUT FEATURE
+====================================================================
+
+1. Login with your teacher account:
+   Username: aylakristel110104
+   Password: teacher123
+   URL: http://localhost:8000/test-login/
+
+2. Once on the teacher dashboard, you'll see:
+   - Top-right: Click your name → "Logout" option
+   - Left sidebar: Red "🚪 Logout" button at the bottom
+
+3. Click either logout option
+
+4. You should be redirected to the login page
+
+5. Try logging in again to verify everything works
+
+====================================================================
+TECHNICAL DETAILS
+====================================================================
+
+Logout View: apps/core/views.py → logout_view()
+Logout URL: apps/core/urls.py → path('logout/', ...)
+Template Changes:
+  - templates/base.html (navigation dropdown + CSS styles)
+  - templates/users/admin/dashboard.html (sidebar button)
+  - templates/users/teacher/dashboard.html (sidebar button)
+  - templates/users/student/dashboard.html (sidebar button)
+
+====================================================================

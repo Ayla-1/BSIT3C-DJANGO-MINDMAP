@@ -1,0 +1,41 @@
+====================================================================
+TEACHER LOGIN CREDENTIALS
+====================================================================
+
+Your teacher account is ready to use!
+
+LOGIN URL: http://localhost:8000/test-login/
+
+TEACHER CREDENTIALS:
+  Username: aylakristel110104
+  Password: teacher123
+
+HOW TO LOGIN:
+1. Start the Django development server (if not running):
+   python manage.py runserver
+
+2. Go to: http://localhost:8000/test-login/
+
+3. Select "Teacher" from the dropdown
+
+4. Enter the credentials above
+
+5. Click "Login"
+
+You will be redirected to the teacher dashboard at:
+http://localhost:8000/users/teacher/dashboard/
+
+====================================================================
+TROUBLESHOOTING
+====================================================================
+
+If login still fails:
+- Make sure you select "Teacher" role from the dropdown
+- Double-check username (no spaces, all lowercase)
+- Make sure XAMPP MySQL is running
+- Check that you're using the correct URL
+
+To reset password again, run:
+python -c "import os, django; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings'); django.setup(); from django.contrib.auth.models import User; u = User.objects.get(username='aylakristel110104'); u.set_password('teacher123'); u.save(); print('Password reset!')"
+
+====================================================================

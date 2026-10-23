@@ -1,0 +1,154 @@
+================================================================================
+    MINDMAP - QUICK START GUIDE
+    Student Academic Progress Monitoring System
+================================================================================
+
+STEP 1: START MYSQL
+-------------------
+1. Open XAMPP Control Panel
+2. Click "Start" next to MySQL
+3. Wait for green indicator
+
+STEP 2: IMPORT DATABASE
+-----------------------
+1. Visit: http://localhost/phpmyadmin
+2. Create database: mindmap_db
+3. Click "Import" tab
+4. Choose: SQL/mindmap_db.sql
+5. Click "Go"
+
+STEP 3: INSTALL DEPENDENCIES
+-----------------------------
+Open PowerShell in project folder and run:
+
+    pip install -r requirements.txt
+
+STEP 4: TEST DATABASE CONNECTION
+---------------------------------
+    python test_connection.py
+
+You should see: "✓ Database connection successful!"
+
+STEP 5: RUN MIGRATIONS
+-----------------------
+    python manage.py migrate
+
+STEP 6: CREATE USER ACCOUNTS
+-----------------------------
+    python setup_database.py
+
+This creates:
+- Admin user (admin / admin123)
+- Teacher users (email prefix / teacher123)
+- Student users (student number / student123)
+
+STEP 7: START SERVER
+--------------------
+Option A: Double-click "start_server.bat"
+Option B: Run in terminal:
+    
+    python manage.py runserver
+
+STEP 8: ACCESS APPLICATION
+---------------------------
+Open browser and visit:
+
+    http://127.0.0.1:8000/
+
+Login with:
+    Username: admin
+    Password: admin123
+
+================================================================================
+ROLE-BASED ACCESS
+================================================================================
+
+ADMIN DASHBOARD
+- Manage students, teachers, subjects
+- View system statistics
+- Monitor all academic records
+
+TEACHER DASHBOARD  
+- Record student grades
+- Create assessments
+- Add progress reports
+- Monitor student performance
+
+STUDENT DASHBOARD
+- View grades by subject
+- View assessment feedback
+- Read progress reports
+- Generate comprehensive reports
+
+================================================================================
+COMMON COMMANDS
+================================================================================
+
+Start server:
+    python manage.py runserver
+
+Create superuser (admin):
+    python manage.py createsuperuser
+
+Make migrations:
+    python manage.py makemigrations
+    python manage.py migrate
+
+Test database:
+    python test_connection.py
+
+Setup users:
+    python setup_database.py
+
+Check for issues:
+    python manage.py check
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Can't connect to database:
+  → Start MySQL in XAMPP
+  → Check database name is "mindmap_db"
+
+Module not found:
+  → pip install -r requirements.txt
+
+Profile not found error:
+  → python setup_database.py
+
+Port already in use:
+  → python manage.py runserver 8080
+
+================================================================================
+PROJECT STRUCTURE
+================================================================================
+
+apps/core/          - Authentication and user profiles
+apps/users/         - Main application (Students, Teachers, Grades, etc.)
+templates/          - HTML templates (pink theme)
+static/             - CSS, JavaScript files
+SQL/                - Database structure
+mysite/             - Django project settings
+
+================================================================================
+DEFAULT PASSWORDS (Change for production!)
+================================================================================
+
+Admin:      admin / admin123
+Teachers:   [email prefix] / teacher123  
+Students:   [student_number] / student123
+
+================================================================================
+FOR MORE HELP
+================================================================================
+
+See detailed guide: SETUP_GUIDE.md
+See full README: README.md
+
+Check terminal for error messages when running:
+    python manage.py runserver
+
+================================================================================
+Version 1.0 | October 2026 | Django 5.0 | Python 3.13
+================================================================================

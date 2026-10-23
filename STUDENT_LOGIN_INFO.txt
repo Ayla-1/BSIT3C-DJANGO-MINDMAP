@@ -1,0 +1,83 @@
+====================================================================
+STUDENT LOGIN CREDENTIALS
+====================================================================
+
+Your student account is ready to use!
+
+CURRENT STUDENT IN DATABASE:
+  Name: Muffin Escabarte
+  Student Number: 1
+  Course: BSIT 1-a
+  Email: muffy@Gmail.com
+
+LOGIN CREDENTIALS:
+  Username: 1
+  Password: student123
+
+====================================================================
+HOW TO LOGIN AS STUDENT
+====================================================================
+
+1. Make sure Django server is running:
+   python manage.py runserver
+
+2. Go to: http://localhost:8000/test-login/
+
+3. Select "Student" from the Role dropdown (IMPORTANT!)
+
+4. Enter credentials:
+   Username: 1
+   Password: student123
+
+5. Click "Login"
+
+You will be redirected to the student dashboard at:
+http://localhost:8000/users/student/dashboard/
+
+====================================================================
+IMPORTANT NOTES
+====================================================================
+
+⚠ The username is the STUDENT NUMBER (in this case: "1")
+⚠ Make sure to select "Student" role from the dropdown
+⚠ Password is case-sensitive: "student123" (all lowercase)
+
+====================================================================
+IF LOGIN STILL FAILS
+====================================================================
+
+1. Check that you selected "Student" role (not Teacher or Admin)
+
+2. Make sure you're entering exactly: 1
+
+3. Run this command to reset password:
+   python test_student_auth.py
+
+4. Check for error messages on the login page
+
+5. Make sure XAMPP MySQL is running
+
+====================================================================
+WHAT YOU CAN DO AS STUDENT
+====================================================================
+
+Once logged in, you can:
+  - View your dashboard
+  - See your grades
+  - View learning assessments
+  - Track academic progress
+  - Generate progress reports
+
+====================================================================
+TO ADD MORE STUDENTS
+====================================================================
+
+Option 1: Login as teacher and use "Add Student" button
+  Teacher login: aylakristel110104 / teacher123
+
+Option 2: Login as admin
+  Admin login: admin / admin123
+
+Option 3: Run: python add_sample_data.py
+
+====================================================================

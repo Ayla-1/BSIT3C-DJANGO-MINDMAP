@@ -1,0 +1,236 @@
+====================================================================
+DROPDOWN TROUBLESHOOTING GUIDE
+====================================================================
+
+The dropdown navigation may not work due to several reasons.
+Follow these steps to diagnose and fix the issue.
+
+====================================================================
+STEP 1: TEST THE DROPDOWN
+====================================================================
+
+Visit this test page to check if Bootstrap is working:
+
+URL: http://localhost:8000/test-dropdown/
+
+This page has a simple dropdown to test if Bootstrap JavaScript is loaded.
+
+If the test dropdown works:
+  → Bootstrap is working fine
+  → The issue is with the main navigation
+
+If the test dropdown DOESN'T work:
+  → Bootstrap JavaScript isn't loading properly
+  → Check browser console for errors
+
+====================================================================
+STEP 2: CHECK BROWSER CONSOLE
+====================================================================
+
+1. Open your browser's Developer Tools:
+   - Chrome/Edge: Press F12 or Ctrl+Shift+I
+   - Firefox: Press F12 or Ctrl+Shift+K
+
+2. Go to the "Console" tab
+
+3. Look for errors like:
+   - "bootstrap is not defined"
+   - "$ is not defined"
+   - Network errors loading scripts
+
+4. If you see errors, note them and continue to Step 3
+
+====================================================================
+STEP 3: VERIFY BOOTSTRAP IS LOADED
+====================================================================
+
+In the browser console, type:
+
+typeof bootstrap
+
+Expected result: "object"
+
+If you see "undefined":
+  → Bootstrap didn't load
+  → Check internet connection
+  → Try refreshing the page (Ctrl+F5)
+
+====================================================================
+STEP 4: CLEAR BROWSER CACHE
+====================================================================
+
+Sometimes old cached files cause issues:
+
+Chrome/Edge:
+  1. Press Ctrl+Shift+Delete
+  2. Select "Cached images and files"
+  3. Click "Clear data"
+  4. Refresh the page (Ctrl+F5)
+
+Firefox:
+  1. Press Ctrl+Shift+Delete
+  2. Select "Cache"
+  3. Click "Clear Now"
+  4. Refresh the page (Ctrl+F5)
+
+====================================================================
+STEP 5: CHECK IF JAVASCRIPT IS ENABLED
+====================================================================
+
+Make sure JavaScript is enabled in your browser:
+
+Chrome/Edge:
+  Settings → Privacy and security → Site settings → JavaScript → Allowed
+
+Firefox:
+  about:config → javascript.enabled → true
+
+====================================================================
+STEP 6: TRY CLICKING (NOT HOVERING)
+====================================================================
+
+The dropdown requires a CLICK, not just hovering:
+
+1. Login to the system
+2. Find your name in the top-right corner
+3. CLICK on your name (or the dropdown arrow)
+4. The menu should appear below
+
+Don't just hover - you must click!
+
+====================================================================
+STEP 7: CHECK THE DROPDOWN HTML
+====================================================================
+
+In browser Developer Tools:
+
+1. Go to "Elements" or "Inspector" tab
+2. Find the dropdown element:
+   <li class="nav-item dropdown">
+3. Right-click and "Inspect Element"
+4. Verify these attributes exist:
+   - data-bs-toggle="dropdown"
+   - aria-expanded="false"
+
+====================================================================
+STEP 8: MANUALLY TEST BOOTSTRAP
+====================================================================
+
+In the browser console, paste this code:
+
+var dropdown = document.querySelector('.dropdown-toggle');
+if (dropdown) {
+    var bsDropdown = new bootstrap.Dropdown(dropdown);
+    bsDropdown.toggle();
+}
+
+This should manually open the dropdown.
+
+If it works:
+  → Bootstrap is loaded correctly
+  → The click event isn't firing
+
+If it doesn't work:
+  → Bootstrap isn't loaded or initialized properly
+
+====================================================================
+STEP 9: RESTART DJANGO SERVER
+====================================================================
+
+Sometimes the server needs to be restarted:
+
+1. Stop the server: Press Ctrl+C in the terminal
+2. Start it again: python manage.py runserver
+3. Clear browser cache (Ctrl+Shift+Delete)
+4. Visit the page again
+
+====================================================================
+STEP 10: CHECK STATIC FILES
+====================================================================
+
+Make sure static files are collected:
+
+python manage.py collectstatic --noinput
+
+Then restart the server.
+
+====================================================================
+ALTERNATIVE: USE DIRECT LINKS
+====================================================================
+
+If dropdown still doesn't work, you can access pages directly:
+
+Profile Page:
+http://localhost:8000/profile/
+
+Dashboard:
+http://localhost:8000/home/
+
+Logout:
+http://localhost:8000/logout/
+
+====================================================================
+QUICK FIX: ADD TO SIDEBAR
+====================================================================
+
+If you can't get the dropdown working, add profile link to sidebar:
+
+In your dashboard template sidebar block, add:
+
+<a class="nav-link" href="{% url 'user_profile' %}">
+    <i>👤</i> My Profile
+</a>
+
+====================================================================
+COMMON ISSUES & SOLUTIONS
+====================================================================
+
+Issue: Dropdown appears but immediately closes
+Solution: Click and hold, don't just tap
+
+Issue: Dropdown doesn't appear at all
+Solution: 
+  1. Check browser console for errors
+  2. Verify Bootstrap CDN is accessible
+  3. Clear browser cache
+
+Issue: "bootstrap is not defined"
+Solution:
+  1. Check internet connection
+  2. Bootstrap CDN might be blocked
+  3. Try refreshing page
+
+Issue: Dropdown works on test page but not on main site
+Solution:
+  1. Conflict with tabler.js
+  2. Try changing script load order
+  3. Remove tabler.js temporarily
+
+====================================================================
+REPORT THE ISSUE
+====================================================================
+
+If none of these steps work, provide this information:
+
+1. Browser name and version
+2. Any console errors (copy/paste)
+3. Does test page dropdown work? (yes/no)
+4. What happens when you click your name?
+5. Screenshot of the console errors
+
+====================================================================
+TEMPORARY WORKAROUND
+====================================================================
+
+Until dropdown is fixed, you can:
+
+1. Bookmark the profile page:
+   http://localhost:8000/profile/
+
+2. Type the URL directly in browser
+
+3. Add a profile button to dashboards
+
+4. Use the logout button in the sidebar
+
+====================================================================
