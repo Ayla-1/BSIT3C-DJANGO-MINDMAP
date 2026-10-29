@@ -1,31 +1,79 @@
 {% extends "base.html" %}
-{% block title %}{% if assessment %}Edit{% else %}Add{% endif %} Assessment - Teacher{% endblock %}
-{% block sidebar %}
-<a class="nav-link" href="{% url 'teacher_dashboard' %}"><i>📊</i> Dashboard</a>
-<a class="nav-link" href="{% url 'teacher_students' %}"><i>👨‍🎓</i> Students</a>
-<a class="nav-link" href="{% url 'teacher_grades' %}"><i>📝</i> Grades</a>
-<a class="nav-link active" href="{% url 'teacher_assessments' %}"><i>📋</i> Assessments</a>
-<a class="nav-link" href="{% url 'teacher_progress' %}"><i>📈</i> Progress</a>
-{% endblock %}
+{% block title %}{% if assessment %}Edit Assessment{% else %}Record Assessment{% endif %} - MindMap HS{% endblock %}
 {% block content %}
-<div class="page-header"><h1>{% if assessment %}Edit{% else %}Add{% endif %} Assessment</h1></div>
-<div class="row"><div class="col-md-10"><div class="card"><div class="card-body"><form method="post">{% csrf_token %}
-<div class="row">
-<div class="col-md-6 mb-3"><label class="form-label">Student *</label>{% if assessment %}<input type="text" class="form-control" value="{{ assessment.student.get_full_name }}" readonly>{% else %}<select class="form-select" name="student_id" required><option value="">Select Student</option>{% for s in students %}<option value="{{ s.student_id }}">{{ s.student_number }} - {{ s.get_full_name }}</option>{% endfor %}</select>{% endif %}</div>
-<div class="col-md-6 mb-3"><label class="form-label">Subject *</label>{% if assessment %}<input type="text" class="form-control" value="{{ assessment.subject.subject_code }}" readonly>{% else %}<select class="form-select" name="subject_id" required><option value="">Select Subject</option>{% for sub in subjects %}<option value="{{ sub.subject_id }}">{{ sub.subject_code }}</option>{% endfor %}</select>{% endif %}</div>
+<div class="page-header">
+    <div class="pretitle">Learning Assessments</div>
+    <h1>{% if assessment %}Edit Assessment{% else %}Record Assessment{% endif %}</h1>
+    <p>Only your assigned subjects and students are available in the lists below.</p>
 </div>
-<div class="row">
-<div class="col-md-6 mb-3"><label class="form-label">Skill Area *</label><input type="text" class="form-control" name="skill_area" value="{{ assessment.skill_area }}" required></div>
-<div class="col-md-6 mb-3"><label class="form-label">Assessment Type</label><input type="text" class="form-control" name="assessment_type" value="{{ assessment.assessment_type }}" placeholder="e.g., Quiz, Exam, Project"></div>
-</div>
-<div class="row">
-<div class="col-md-4 mb-3"><label class="form-label">Assessment Date *</label><input type="date" class="form-control" name="assessment_date" value="{{ assessment.assessment_date|date:'Y-m-d' }}" required></div>
-<div class="col-md-4 mb-3"><label class="form-label">Score</label><input type="number" step="0.01" class="form-control" name="score" value="{{ assessment.score }}"></div>
-<div class="col-md-4 mb-3"><label class="form-label">Max Score</label><input type="number" step="0.01" class="form-control" name="max_score" value="{{ assessment.max_score }}"></div>
-</div>
-<div class="mb-3"><label class="form-label">Strengths</label><textarea class="form-control" name="strengths" rows="3">{{ assessment.strengths }}</textarea></div>
-<div class="mb-3"><label class="form-label">Areas to Improve</label><textarea class="form-control" name="areas_to_improve" rows="3">{{ assessment.areas_to_improve }}</textarea></div>
-<div class="mb-3"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="2">{{ assessment.notes }}</textarea></div>
-<div class="d-flex justify-content-between mt-4"><a href="{% url 'teacher_assessments' %}" class="btn btn-secondary">Cancel</a><button type="submit" class="btn btn-primary">{% if assessment %}Update{% else %}Add{% endif %} Assessment</button></div>
-</form></div></div></div></div>
+
+{% if not subjects %}
+<div class="card"><div class="empty-state"><span class="icon">📚</span>You have no assigned subject yet.</div></div>
+{% else %}
+<form method="post">
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Subject <span class="text-danger">*</span></label>
+                    <select name="subject" class="form-select" required>
+                        {% for subject in subjects %}
+                        <option value="{{ subject.pk }}" {% if assessment and assessment.subject_id == subject.pk or selected_subject and selected_subject.pk == subject.pk %}selected{% endif %}>{{ subject.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Student <span class="text-danger">*</span></label>
+                    <select name="student" class="form-select" required>
+                        {% for student in students %}
+                        <option value="{{ student.pk }}" {% if assessment and assessment.student_id == student.pk %}selected{% endif %}>{{ student.get_full_name }} — {{ student.student_number }} ({{ student.section.name }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Assessment title <span class="text-danger">*</span></label>
+                    <input type="text" name="title" class="form-control" required value="{{ assessment.title|default:'' }}" placeholder="e.g. Quiz 1 - Linear Equations">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Type</label>
+                    <select name="assessment_type" class="form-select">
+                        {% for value, label in type_choices %}
+                        <option value="{{ value }}" {% if assessment and assessment.assessment_type == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Quarter</label>
+                    <select name="quarter" class="form-select">
+                        {% for value, label in quarters %}
+                        <option value="{{ value }}" {% if assessment and assessment.quarter == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Assessment date</label>
+                    <input type="date" name="assessment_date" class="form-control" value="{% if assessment %}{{ assessment.assessment_date|date:'Y-m-d' }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Score</label>
+                    <input type="number" step="0.01" min="0" name="score" class="form-control" value="{{ assessment.score|default_if_none:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Maximum score</label>
+                    <input type="number" step="0.01" min="0" name="max_score" class="form-control" value="{{ assessment.max_score|default_if_none:'' }}">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Notes</label>
+                    <textarea name="notes" class="form-control" rows="3" placeholder="Optional notes about the assessment">{% if assessment %}{{ assessment.notes|default:'' }}{% endif %}</textarea>
+                </div>
+            </div>
+        </div>
+        <div class="card-body border-top d-flex gap-2">
+            <button class="btn btn-primary">{% if assessment %}Save changes{% else %}Record assessment{% endif %}</button>
+            <a href="{% url 'teacher_assessments' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </div>
+</form>
+{% endif %}
 {% endblock %}

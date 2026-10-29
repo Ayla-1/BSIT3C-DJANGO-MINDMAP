@@ -1,0 +1,60 @@
+{% load static %}
+{% with url_name=request.resolver_match.url_name role=user.profile.role %}
+<div class="who-card">
+    <div class="d-flex align-items-center gap-2">
+        <span class="d-inline-flex align-items-center justify-content-center"
+              style="width:2.2rem;height:2.2rem;border-radius:10px;background:#e0e7ff;color:#4338ca;font-weight:800;">
+            {{ user.first_name|default:user.username|first|upper }}
+        </span>
+        <div class="min-w-0">
+            <div class="fw-bold text-truncate" style="font-size:0.88rem;">
+                {{ user.get_full_name|default:user.username }}
+            </div>
+            <div class="text-muted" style="font-size:0.74rem;">
+                {% if role == 'admin' %}Administrator{% elif role == 'teacher' %}Teacher{% elif role == 'student' %}Student{% else %}User{% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if role == 'admin' %}
+<div class="sidebar-heading">School Management</div>
+<nav class="nav flex-column">
+    <a class="nav-link {% if url_name == 'admin_dashboard' %}active{% endif %}" href="{% url 'admin_dashboard' %}"><i>📊</i> Dashboard</a>
+    <a class="nav-link {% if 'admin_student' in url_name %}active{% endif %}" href="{% url 'admin_students' %}"><i>👨‍🎓</i> Students</a>
+    <a class="nav-link {% if 'admin_teacher' in url_name or url_name == 'admin_assignments' %}active{% endif %}" href="{% url 'admin_teachers' %}"><i>👩‍🏫</i> Teachers</a>
+    <a class="nav-link {% if 'admin_subject' in url_name %}active{% endif %}" href="{% url 'admin_subjects' %}"><i>📚</i> Subjects</a>
+    <a class="nav-link {% if 'admin_section' in url_name %}active{% endif %}" href="{% url 'admin_sections' %}"><i>🏫</i> Sections</a>
+    <a class="nav-link {% if 'admin_announcement' in url_name %}active{% endif %}" href="{% url 'admin_announcements' %}"><i>📣</i> Announcements</a>
+</nav>
+{% elif role == 'teacher' %}
+<div class="sidebar-heading">My Teaching</div>
+<nav class="nav flex-column">
+    <a class="nav-link {% if url_name == 'teacher_dashboard' %}active{% endif %}" href="{% url 'teacher_dashboard' %}"><i>📊</i> Dashboard</a>
+    <a class="nav-link {% if 'teacher_student' in url_name %}active{% endif %}" href="{% url 'teacher_students' %}"><i>👨‍🎓</i> My Students</a>
+    <a class="nav-link {% if url_name == 'teacher_gradebook' %}active{% endif %}" href="{% url 'teacher_gradebook' %}"><i>📝</i> Gradebook</a>
+    <a class="nav-link {% if url_name == 'teacher_grades' %}active{% endif %}" href="{% url 'teacher_grades' %}"><i>📋</i> Grade Records</a>
+    <a class="nav-link {% if 'teacher_assessment' in url_name %}active{% endif %}" href="{% url 'teacher_assessments' %}"><i>🧪</i> Assessments</a>
+    <a class="nav-link {% if 'teacher_progress' in url_name %}active{% endif %}" href="{% url 'teacher_progress' %}"><i>📈</i> Academic Progress</a>
+</nav>
+{% elif role == 'student' %}
+<div class="sidebar-heading">My Academics</div>
+<nav class="nav flex-column">
+    <a class="nav-link {% if url_name == 'student_dashboard' %}active{% endif %}" href="{% url 'student_dashboard' %}"><i>🏠</i> My Dashboard</a>
+    <a class="nav-link {% if url_name == 'student_grades' %}active{% endif %}" href="{% url 'student_grades' %}"><i>📚</i> My Grades</a>
+    <a class="nav-link {% if url_name == 'student_progress' %}active{% endif %}" href="{% url 'student_progress' %}"><i>📈</i> Strengths &amp; Growth</a>
+    <a class="nav-link {% if url_name == 'student_assessments' %}active{% endif %}" href="{% url 'student_assessments' %}"><i>🧪</i> Assessments</a>
+    <a class="nav-link {% if url_name == 'user_profile' %}active{% endif %}" href="{% url 'user_profile' %}"><i>🔒</i> Profile &amp; Password</a>
+</nav>
+{% else %}
+<nav class="nav flex-column">
+    <a class="nav-link" href="{% url 'dashboard' %}"><i>🏠</i> Home</a>
+</nav>
+{% endif %}
+
+<div class="sidebar-heading">Account</div>
+<nav class="nav flex-column">
+    <a class="nav-link {% if url_name == 'user_profile' %}active{% endif %}" href="{% url 'user_profile' %}"><i>👤</i> Profile</a>
+    <a class="nav-link text-danger" href="{% url 'logout' %}"><i>🚪</i> Logout</a>
+</nav>
+{% endwith %}

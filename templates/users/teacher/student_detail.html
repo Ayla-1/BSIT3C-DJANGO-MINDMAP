@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}{{ student.get_full_name }} - MindMap HS{% endblock %}
+{% block content %}
+<div class="profile-hero">
+    <img src="{{ student.get_profile_picture_url }}" alt="Profile picture" class="avatar">
+    <div class="flex-grow-1">
+        <div class="pretitle text-uppercase" style="font-size:0.68rem;letter-spacing:0.14em;opacity:0.7;">Student Academic Profile</div>
+        <h2>{{ student.get_full_name }}</h2>
+        <div class="meta">
+            {{ student.student_number }} • {{ student.grade_level }} - {{ student.section.name }}
+            • Adviser: {{ student.section.adviser.get_full_name|default:"—" }}
+        </div>
+        <div class="mt-2">
+            <span class="chip">Average in my subjects: {{ average|default:"—" }}</span>
+            <span class="chip">{{ student.email|default:"No email" }}</span>
+        </div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'teacher_progress_create' %}?student={{ student.pk }}" class="btn btn-light btn-sm fw-bold">📈 Add progress note</a>
+        <a href="{% url 'teacher_students' %}" class="btn btn-outline-light btn-sm">Back to students</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3 class="card-title">Grades in My Subjects</h3></div>
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th class="text-center">Q1</th><th class="text-center">Q2</th>
+                    <th class="text-center">Q3</th><th class="text-center">Q4</th>
+                    <th class="text-center">Average</th><th>Rating</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td class="fw-semibold">{{ row.subject.name }}</td>
+                    <td class="text-center">{{ row.grades.1.final_grade|default:"—" }}</td>
+                    <td class="text-center">{{ row.grades.2.final_grade|default:"—" }}</td>
+                    <td class="text-center">{{ row.grades.3.final_grade|default:"—" }}</td>
+                    <td class="text-center">{{ row.grades.4.final_grade|default:"—" }}</td>
+                    <td class="text-center fw-bold">{{ row.average|default:"—" }}</td>
+                    <td><span class="badge bg-{{ row.bar_class }}-subtle text-{{ row.bar_class }}">{{ row.rating }}</span></td>
+                    <td class="text-nowrap">
+                        <a href="{% url 'teacher_gradebook' %}?subject={{ row.subject.pk }}&section={{ student.section.pk }}" class="btn btn-sm btn-outline-primary">Encode grades</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8"><div class="empty-state"><span class="icon">📚</span>No subjects assigned to you.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card h-100 mb-0">
+            <div class="card-header"><h3 class="card-title">Progress Notes</h3></div>
+            <div class="card-body">
+                {% for record in progress_records %}
+                <div class="announcement-item {% if forloop.first %}pt-0{% endif %}">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                            <div class="fw-bold">{{ record.subject.name }} <span class="badge bg-secondary-subtle text-secondary">{{ record.status }}</span></div>
+                            <div class="stamp">{{ record.record_date|date:"M d, Y" }} • {{ record.teacher.get_full_name|default:"—" }}</div>
+                        </div>
+                        <a href="{% url 'teacher_progress_edit' record.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    </div>
+                    <div class="row g-2 mt-2">
+                        <div class="col-md-4"><div class="text-muted small fw-bold">Strengths</div><div style="font-size:0.86rem;">{{ record.strengths }}</div></div>
+                        <div class="col-md-4"><div class="text-muted small fw-bold">Areas for improvement</div><div style="font-size:0.86rem;">{{ record.areas_for_improvement }}</div></div>
+                        <div class="col-md-4"><div class="text-muted small fw-bold">Recent improvements</div><div style="font-size:0.86rem;">{{ record.recent_improvements }}</div></div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state"><span class="icon">📈</span>No progress notes for this student in your subjects.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card h-100 mb-0">
+            <div class="card-header"><h3 class="card-title">Assessment Results</h3></div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead><tr><th>Assessment</th><th>Subject</th><th class="text-center">Score</th></tr></thead>
+                    <tbody>
+                        {% for row in assessments %}
+                        <tr>
+                            <td>{{ row.assessment.title }}<br><small class="text-muted">{{ row.assessment.assessment_date|date:"M d, Y" }}</small></td>
+                            <td>{{ row.assessment.subject.name }}</td>
+                            <td class="text-center">{{ row.assessment.score|default:"—" }}/{{ row.assessment.max_score|default:"—" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3"><div class="empty-state"><span class="icon">🧪</span>No assessments yet.</div></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

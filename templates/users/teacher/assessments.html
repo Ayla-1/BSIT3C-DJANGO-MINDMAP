@@ -1,16 +1,64 @@
 {% extends "base.html" %}
-{% block title %}Assessments - Teacher{% endblock %}
-{% block sidebar %}
-<a class="nav-link" href="{% url 'teacher_dashboard' %}"><i>📊</i> Dashboard</a>
-<a class="nav-link" href="{% url 'teacher_students' %}"><i>👨‍🎓</i> Students</a>
-<a class="nav-link" href="{% url 'teacher_grades' %}"><i>📝</i> Grades</a>
-<a class="nav-link active" href="{% url 'teacher_assessments' %}"><i>📋</i> Assessments</a>
-<a class="nav-link" href="{% url 'teacher_progress' %}"><i>📈</i> Progress</a>
-{% endblock %}
+{% block title %}Assessments - MindMap HS{% endblock %}
 {% block content %}
-<div class="page-header d-flex justify-content-between align-items-center"><div><h1>Learning Assessments</h1></div><a href="{% url 'teacher_assessment_create' %}" class="btn btn-primary">➕ Add Assessment</a></div>
-<div class="card"><div class="card-header"><h3 class="card-title">Assessment Records</h3></div><div class="card-body"><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Student</th><th>Subject</th><th>Skill Area</th><th>Score</th><th>Date</th><th>Actions</th></tr></thead><tbody>
-{% for a in assessments %}<tr><td>{{ a.student.student_number }}</td><td>{{ a.subject.subject_code }}</td><td>{{ a.skill_area }}</td><td>{% if a.score and a.max_score %}{{ a.score }}/{{ a.max_score }} ({{ a.get_percentage|floatformat:1 }}%){% else %}-{% endif %}</td><td>{{ a.assessment_date|date:"M d, Y" }}</td><td><a href="{% url 'teacher_assessment_edit' a.assessment_id %}" class="btn btn-sm btn-outline-primary">Edit</a></td></tr>
-{% empty %}<tr><td colspan="6" class="text-center text-muted py-4">No assessments found</td></tr>{% endfor %}
-</tbody></table></div></div></div>
+<div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div>
+        <div class="pretitle">Learning Assessments</div>
+        <h1>My Assessments</h1>
+        <p>Assessment results for your assigned subjects only.</p>
+    </div>
+    <a href="{% url 'teacher_assessment_create' %}" class="btn btn-light btn-sm fw-bold">➕ Record assessment</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-1">Subject</label>
+                <select name="subject" class="form-select form-select-sm">
+                    <option value="">All my subjects</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.pk }}" {% if subject.pk|stringformat:"s" == subject_filter %}selected{% endif %}>{{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-1">Search student</label>
+                <input type="text" name="search" value="{{ search_query }}" class="form-control form-control-sm" placeholder="Name or student ID">
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button class="btn btn-sm btn-primary">Filter</button>
+                <a href="{% url 'teacher_assessments' %}" class="btn btn-sm btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr><th>Date</th><th>Assessment</th><th>Student</th><th>Subject</th><th>Type</th><th>Quarter</th><th class="text-center">Score</th><th style="min-width:120px;">Result</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td class="text-nowrap">{{ row.assessment.assessment_date|date:"M d, Y" }}</td>
+                    <td class="fw-semibold">{{ row.assessment.title }}</td>
+                    <td>{{ row.assessment.student.get_full_name }}<br><small class="text-muted">{{ row.assessment.student.student_number }}</small></td>
+                    <td>{{ row.assessment.subject.name }}</td>
+                    <td><span class="badge bg-secondary-subtle text-secondary">{{ row.assessment.get_assessment_type_display }}</span></td>
+                    <td>Q{{ row.assessment.quarter }}</td>
+                    <td class="text-center">{{ row.assessment.score|default:"—" }} / {{ row.assessment.max_score|default:"—" }}</td>
+                    <td>
+                        <div class="progress">
+                            <div class="progress-bar bg-{% if row.percent >= 85 %}success{% elif row.percent >= 75 %}warning{% else %}danger{% endif %}" style="width: {{ row.percent }}%;"></div>
+                        </div>
+                    </td>
+                    <td><a href="{% url 'teacher_assessment_edit' row.assessment.pk %}" class="btn btn-sm btn-outline-primary">Edit</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9"><div class="empty-state"><span class="icon">🧪</span>No assessments recorded yet.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

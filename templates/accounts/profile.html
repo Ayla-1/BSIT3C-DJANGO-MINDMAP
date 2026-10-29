@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}My Profile - MindMap HS{% endblock %}
+{% block content %}
+<div class="profile-hero">
+    {% if student %}
+    <img src="{{ student.get_profile_picture_url }}" alt="Profile picture" class="avatar">
+    {% else %}
+    <div class="avatar d-flex align-items-center justify-content-center" style="font-size:2rem;color:#4338ca;font-weight:800;">
+        {{ user.first_name|default:user.username|first|upper }}
+    </div>
+    {% endif %}
+    <div class="flex-grow-1">
+        <div class="pretitle text-uppercase" style="font-size:0.68rem;letter-spacing:0.14em;opacity:0.7;">My Profile</div>
+        <h2>{{ user.get_full_name|default:user.username }}</h2>
+        <div class="meta">
+            @{{ user.username }} • {{ user.email|default:"No email on file" }}
+        </div>
+        <div class="mt-2">
+            <span class="chip">
+                {% if role == 'admin' %}Administrator{% elif role == 'teacher' %}Teacher{% elif role == 'student' %}Student{% else %}User{% endif %}
+            </span>
+            {% if teacher %}<span class="chip">{{ teacher.department|default:"Faculty" }}</span>{% endif %}
+            {% if student %}<span class="chip">{{ student.grade_level }} - {{ student.section.name }}</span>{% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card mb-3">
+            <div class="card-header"><h3 class="card-title">Account Information</h3></div>
+            <div class="card-body">
+                <div class="row g-3" style="font-size:0.9rem;">
+                    <div class="col-md-6"><div class="text-muted small">Username</div><div class="fw-semibold">{{ user.username }}</div></div>
+                    <div class="col-md-6"><div class="text-muted small">Full name</div><div class="fw-semibold">{{ user.get_full_name|default:"—" }}</div></div>
+                    <div class="col-md-6"><div class="text-muted small">Email</div><div class="fw-semibold">{{ user.email|default:"—" }}</div></div>
+                    <div class="col-md-6"><div class="text-muted small">Role</div><div class="fw-semibold text-capitalize">{{ role }}</div></div>
+                    {% if teacher %}
+                    <div class="col-md-6"><div class="text-muted small">Department</div><div class="fw-semibold">{{ teacher.department|default:"—" }}</div></div>
+                    <div class="col-md-6"><div class="text-muted small">Specialization</div><div class="fw-semibold">{{ teacher.specialization|default:"—" }}</div></div>
+                    <div class="col-12">
+                        <div class="text-muted small">Assigned subjects</div>
+                        <div class="mt-1">
+                            {% for subject in my_subjects %}
+                            <span class="badge bg-primary-subtle text-primary">{{ subject.name }}</span>
+                            {% empty %}<span class="text-muted">No subject assigned yet.</span>{% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-6"><div class="text-muted small">Assigned students</div><div class="fw-semibold">{{ student_count }}</div></div>
+                    {% endif %}
+                    {% if student %}
+                    <div class="col-md-6"><div class="text-muted small">Student ID</div><div class="fw-semibold">{{ student.student_number }}</div></div>
+                    <div class="col-md-6"><div class="text-muted small">Grade level &amp; section</div><div class="fw-semibold">{{ student.grade_level }} - {{ student.section.name }}</div></div>
+                    <div class="col-md-6"><div class="text-muted small">Adviser</div><div class="fw-semibold">{{ student.section.adviser.get_full_name|default:"—" }}</div></div>
+                    <div class="col-md-6"><div class="text-muted small">General average</div><div class="fw-semibold">{{ average|default:"—" }}</div></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if student %}
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title">My Subjects</h3>
+                <a href="{% url 'student_grades' %}" class="btn btn-sm btn-outline-primary">Full grades</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead><tr><th>Subject</th><th class="text-center">Latest grade</th><th>Rating</th></tr></thead>
+                    <tbody>
+                        {% for row in subject_rows %}
+                        <tr>
+                            <td>{{ row.subject.name }}</td>
+                            <td class="text-center fw-bold">{{ row.latest.final_grade|default:"—" }}</td>
+                            <td class="text-muted">{{ row.rating }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Change My Password</h3></div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="change_password">
+                    <div class="mb-3">
+                        <label class="form-label">Current password</label>
+                        <input type="password" name="current_password" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New password</label>
+                        <input type="password" name="new_password" class="form-control" required minlength="8">
+                        <small class="text-muted">At least 8 characters.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirm new password</label>
+                        <input type="password" name="confirm_password" class="form-control" required minlength="8">
+                    </div>
+                    <button class="btn btn-primary w-100">Update password</button>
+                </form>
+                <div class="alert alert-light border mt-3 mb-0" style="font-size:0.82rem;">
+                    You can only change your own password. Contact the administrator if you cannot sign in.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

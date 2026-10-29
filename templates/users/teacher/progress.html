@@ -1,16 +1,74 @@
 {% extends "base.html" %}
-{% block title %}Progress - Teacher{% endblock %}
-{% block sidebar %}
-<a class="nav-link" href="{% url 'teacher_dashboard' %}"><i>📊</i> Dashboard</a>
-<a class="nav-link" href="{% url 'teacher_students' %}"><i>👨‍🎓</i> Students</a>
-<a class="nav-link" href="{% url 'teacher_grades' %}"><i>📝</i> Grades</a>
-<a class="nav-link" href="{% url 'teacher_assessments' %}"><i>📋</i> Assessments</a>
-<a class="nav-link active" href="{% url 'teacher_progress' %}"><i>📈</i> Progress</a>
-{% endblock %}
+{% block title %}Academic Progress - MindMap HS{% endblock %}
 {% block content %}
-<div class="page-header d-flex justify-content-between align-items-center"><div><h1>Academic Progress</h1></div><a href="{% url 'teacher_progress_create' %}" class="btn btn-primary">➕ Add Progress Record</a></div>
-<div class="card"><div class="card-body"><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Student</th><th>Category</th><th>Status</th><th>Date</th><th>Observation</th></tr></thead><tbody>
-{% for p in progress_records %}<tr><td>{{ p.student.get_full_name }}</td><td>{{ p.progress_category }}</td><td><span class="badge bg-primary">{{ p.status }}</span></td><td>{{ p.assessment_date|date:"M d, Y" }}</td><td>{{ p.observation|truncatewords:15 }}</td></tr>
-{% empty %}<tr><td colspan="5" class="text-center text-muted py-4">No progress records</td></tr>{% endfor %}
-</tbody></table></div></div></div>
+<div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div>
+        <div class="pretitle">Academic Development</div>
+        <h1>Academic Progress Records</h1>
+        <p>Strengths, areas for improvement and recent improvements you recorded for your students.</p>
+    </div>
+    <a href="{% url 'teacher_progress_create' %}" class="btn btn-light btn-sm fw-bold">➕ Add progress note</a>
+</div>
+
+<div class="alert alert-light border">
+    <strong>These notes appear on the student dashboard immediately.</strong>
+    You can only create and edit progress records for students under your assigned subjects.
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-1">Subject</label>
+                <select name="subject" class="form-select form-select-sm">
+                    <option value="">All my subjects</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.pk }}" {% if subject.pk|stringformat:"s" == subject_filter %}selected{% endif %}>{{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-1">Search student</label>
+                <input type="text" name="search" value="{{ search_query }}" class="form-control form-control-sm" placeholder="Name or student ID">
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button class="btn btn-sm btn-primary">Filter</button>
+                <a href="{% url 'teacher_progress' %}" class="btn btn-sm btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Date</th><th>Student</th><th>Subject</th><th>Status</th>
+                    <th>Strengths</th><th>Areas for Improvement</th><th>Recent Improvements</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td class="text-nowrap">{{ record.record_date|date:"M d, Y" }}</td>
+                    <td class="fw-semibold">{{ record.student.get_full_name }}<br><small class="text-muted">{{ record.student.section.name }}</small></td>
+                    <td>{{ record.subject.name }}</td>
+                    <td>
+                        {% if record.status == 'Excellent' %}<span class="badge bg-success-subtle text-success">{{ record.status }}</span>
+                        {% elif record.status == 'Improving' %}<span class="badge bg-primary-subtle text-primary">{{ record.status }}</span>
+                        {% elif record.status == 'At Risk' %}<span class="badge bg-danger-subtle text-danger">{{ record.status }}</span>
+                        {% else %}<span class="badge bg-warning-subtle text-warning">{{ record.status }}</span>{% endif %}
+                    </td>
+                    <td style="max-width:190px;">{{ record.strengths|truncatechars:70 }}</td>
+                    <td style="max-width:190px;">{{ record.areas_for_improvement|truncatechars:70 }}</td>
+                    <td style="max-width:190px;">{{ record.recent_improvements|truncatechars:70 }}</td>
+                    <td class="text-nowrap">
+                        <a href="{% url 'teacher_progress_edit' record.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8"><div class="empty-state"><span class="icon">📈</span>No progress records yet. Add the first one for your students.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

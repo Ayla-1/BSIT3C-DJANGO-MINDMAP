@@ -1,31 +1,100 @@
 {% extends "base.html" %}
-{% block title %}My Progress - Student{% endblock %}
-{% block sidebar %}
-<a class="nav-link" href="{% url 'student_dashboard' %}"><i>📊</i> Dashboard</a>
-<a class="nav-link" href="{% url 'student_grades' %}"><i>📝</i> My Grades</a>
-<a class="nav-link" href="{% url 'student_assessments' %}"><i>📋</i> Assessments</a>
-<a class="nav-link active" href="{% url 'student_progress' %}"><i>📈</i> Progress</a>
-<a class="nav-link" href="{% url 'student_report' %}"><i>📄</i> Progress Report</a>
-{% endblock %}
+{% block title %}Strengths & Growth - MindMap HS{% endblock %}
 {% block content %}
-<div class="page-header"><h1>Academic Progress</h1></div>
-{% if status_stats %}
-<div class="row mb-4">
-{% for stat in status_stats %}
-<div class="col-md-3"><div class="card"><div class="card-body text-center"><h4>{{ stat.count }}</h4><small>{{ stat.status }}</small></div></div></div>
-{% endfor %}
+<div class="page-header">
+    <div class="pretitle">Academic Development</div>
+    <h1>Strengths &amp; Growth</h1>
+    <p>Written by your subject teachers based on your class performance, assessments and grades. Only your teachers can edit these notes.</p>
 </div>
-{% endif %}
-<div class="card"><div class="card-body">
-{% for p in progress_records %}
-<div class="mb-4 p-3" style="background: white; border-radius: 8px; border-left: 4px solid var(--blue-primary);">
-<div class="d-flex justify-content-between align-items-start mb-2"><h5 class="mb-0">{{ p.progress_category }}</h5><span class="badge bg-primary">{{ p.status }}</span></div>
-<p class="mb-2">{{ p.observation }}</p>
-{% if p.recommendation %}<p class="mb-2"><strong>Recommendation:</strong> {{ p.recommendation }}</p>{% endif %}
-<small class="text-muted">{{ p.assessment_date|date:"F d, Y" }} - By {{ p.teacher.get_full_name }}</small>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="note-card strengths">
+            <div class="note-icon">💪</div>
+            <h6>Strengths</h6>
+            {% for record in groups.strengths %}
+            <div class="note-entry">
+                <div class="subject-label">{{ record.subject.name }} • {{ record.teacher.get_full_name|default:"Teacher" }}</div>
+                <p>{{ record.strengths }}</p>
+                <div class="text-muted" style="font-size:0.72rem;">Updated {{ record.record_date|date:"M d, Y" }}</div>
+            </div>
+            {% empty %}
+            <p class="text-muted mb-0" style="font-size:0.87rem;">No strengths recorded yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="note-card areas">
+            <div class="note-icon">🎯</div>
+            <h6>Areas for Improvement</h6>
+            {% for record in groups.improvements_needed %}
+            <div class="note-entry">
+                <div class="subject-label">{{ record.subject.name }} • {{ record.teacher.get_full_name|default:"Teacher" }}</div>
+                <p>{{ record.areas_for_improvement }}</p>
+                <div class="text-muted" style="font-size:0.72rem;">Updated {{ record.record_date|date:"M d, Y" }}</div>
+            </div>
+            {% empty %}
+            <p class="text-muted mb-0" style="font-size:0.87rem;">No areas for improvement recorded yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="note-card improvements">
+            <div class="note-icon">🚀</div>
+            <h6>Recent Improvements</h6>
+            {% for record in groups.recent_improvements %}
+            <div class="note-entry">
+                <div class="subject-label">{{ record.subject.name }} • {{ record.teacher.get_full_name|default:"Teacher" }}</div>
+                <p>{{ record.recent_improvements }}</p>
+                <div class="text-muted" style="font-size:0.72rem;">Updated {{ record.record_date|date:"M d, Y" }}</div>
+            </div>
+            {% empty %}
+            <p class="text-muted mb-0" style="font-size:0.87rem;">No recent improvements recorded yet.</p>
+            {% endfor %}
+        </div>
+    </div>
 </div>
-{% empty %}
-<p class="text-center text-muted py-4">No progress records yet</p>
-{% endfor %}
-</div></div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Progress History</h3>
+        <small class="text-muted">Every record your teachers have written for you</small>
+    </div>
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Date</th><th>Subject</th><th>Teacher</th><th>Status</th>
+                    <th>Strengths</th><th>Areas for Improvement</th><th>Recent Improvements</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in history %}
+                <tr>
+                    <td class="text-nowrap">{{ record.record_date|date:"M d, Y" }}</td>
+                    <td class="fw-semibold">{{ record.subject.name }}</td>
+                    <td>{{ record.teacher.get_full_name|default:"—" }}</td>
+                    <td>
+                        {% if record.status == 'Excellent' %}<span class="badge bg-success-subtle text-success">{{ record.status }}</span>
+                        {% elif record.status == 'Improving' %}<span class="badge bg-primary-subtle text-primary">{{ record.status }}</span>
+                        {% elif record.status == 'Stable' %}<span class="badge bg-secondary-subtle text-secondary">{{ record.status }}</span>
+                        {% elif record.status == 'At Risk' %}<span class="badge bg-danger-subtle text-danger">{{ record.status }}</span>
+                        {% else %}<span class="badge bg-warning-subtle text-warning">{{ record.status }}</span>{% endif %}
+                    </td>
+                    <td style="min-width:200px;">{{ record.strengths }}</td>
+                    <td style="min-width:200px;">{{ record.areas_for_improvement }}</td>
+                    <td style="min-width:200px;">{{ record.recent_improvements }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7"><div class="empty-state"><span class="icon">📈</span>No progress records yet.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="alert alert-light border">
+    <strong>How this works:</strong> your subject teachers record your strengths, areas for improvement and recent improvements after class activities and assessments.
+    The latest note per subject appears automatically on your dashboard. You can read these notes but cannot change them.
+</div>
 {% endblock %}

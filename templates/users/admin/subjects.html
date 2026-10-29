@@ -1,53 +1,46 @@
 {% extends "base.html" %}
-{% block title %}Manage Subjects - Admin{% endblock %}
-{% block sidebar %}
-<a class="nav-link" href="{% url 'admin_dashboard' %}"><i>📊</i> Dashboard</a>
-<a class="nav-link" href="{% url 'admin_students' %}"><i>👨‍🎓</i> Students</a>
-<a class="nav-link" href="{% url 'admin_teachers' %}"><i>👩‍🏫</i> Teachers</a>
-<a class="nav-link active" href="{% url 'admin_subjects' %}"><i>📚</i> Subjects</a>
-{% endblock %}
+{% block title %}Subjects - MindMap HS{% endblock %}
 {% block content %}
-<div class="page-header d-flex justify-content-between align-items-center">
-    <div><h1>Manage Subjects</h1></div>
-    <a href="{% url 'admin_subject_create' %}" class="btn btn-primary">➕ Add New Subject</a>
-</div>
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">Subject List</h3>
-        <div class="card-actions">
-            <form method="get" class="d-flex">
-                <input type="text" name="search" class="form-control me-2" placeholder="Search subjects..." value="{{ search_query }}">
-                <button type="submit" class="btn btn-primary">Search</button>
-            </form>
-        </div>
+<div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div>
+        <div class="pretitle">Curriculum</div>
+        <h1>Subjects &amp; Teacher Assignments</h1>
+        <p>Each subject is handled by one teacher. Assign the sections that take the subject.</p>
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr><th>Code</th><th>Subject Name</th><th>Units</th><th>Teacher</th><th>Actions</th></tr>
-                </thead>
-                <tbody>
-                    {% for subject in subjects %}
-                    <tr>
-                        <td><strong>{{ subject.subject_code }}</strong></td>
-                        <td>{{ subject.subject_name }}</td>
-                        <td>{{ subject.units }}</td>
-                        <td>{{ subject.teacher.get_full_name|default:"-" }}</td>
-                        <td>
-                            <a href="{% url 'admin_subject_edit' subject.subject_id %}" class="btn btn-sm btn-outline-primary">Edit</a>
-                            <form method="post" action="{% url 'admin_subject_delete' subject.subject_id %}" style="display:inline;" onsubmit="return confirm('Delete this subject?');">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="5" class="text-center text-muted py-4">No subjects found</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <a href="{% url 'admin_subject_create' %}" class="btn btn-light btn-sm fw-bold">➕ Add subject</a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr><th>Code</th><th>Subject</th><th>Teacher</th><th>Sections</th><th class="text-center">Grades</th><th class="text-end">Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                <tr>
+                    <td class="fw-bold">{{ subject.code }}</td>
+                    <td>{{ subject.name }}</td>
+                    <td>{{ subject.teacher.get_full_name|default:"Unassigned" }}</td>
+                    <td>
+                        {% for section in subject.sections.all %}
+                        <span class="badge bg-secondary-subtle text-secondary">{{ section.name }}</span>
+                        {% empty %}<span class="text-muted">None</span>{% endfor %}
+                    </td>
+                    <td class="text-center">{{ subject.grades.count }}</td>
+                    <td class="text-end text-nowrap">
+                        <a href="{% url 'admin_subject_edit' subject.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form method="post" action="{% url 'admin_subject_delete' subject.pk %}" class="d-inline" onsubmit="return confirm('Delete this subject and all its grades?');">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6"><div class="empty-state"><span class="icon">📚</span>No subjects yet.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{% if section %}Edit Section{% else %}Add Section{% endif %} - MindMap HS{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="pretitle">Class Organization</div>
+    <h1>{% if section %}Edit {{ section.name }}{% else %}Add Section{% endif %}</h1>
+    <p>Changing the grade level also updates all students in this section.</p>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Section name <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" required value="{{ section.name|default:'' }}" placeholder="e.g. Section A">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Code <span class="text-danger">*</span></label>
+                    <input type="text" name="code" class="form-control" required value="{{ section.code|default:'' }}" placeholder="A">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Grade level <span class="text-danger">*</span></label>
+                    <select name="grade_level" class="form-select" required>
+                        {% for level in grade_levels %}
+                        <option value="{{ level }}" {% if section.grade_level == level %}selected{% endif %}>{{ level }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">School year</label>
+                    <input type="text" name="school_year" class="form-control" value="{{ section.school_year|default:'2026-2027' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Adviser</label>
+                    <select name="adviser" class="form-select">
+                        <option value="">None</option>
+                        {% for teacher in teachers %}
+                        <option value="{{ teacher.pk }}" {% if section.adviser_id == teacher.pk %}selected{% endif %}>{{ teacher.get_full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Room</label>
+                    <input type="text" name="room" class="form-control" value="{{ section.room|default:'' }}">
+                </div>
+            </div>
+        </div>
+        <div class="card-body border-top d-flex gap-2">
+            <button class="btn btn-primary">{% if section %}Save changes{% else %}Create section{% endif %}</button>
+            <a href="{% url 'admin_sections' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </div>
+</form>
+{% endblock %}

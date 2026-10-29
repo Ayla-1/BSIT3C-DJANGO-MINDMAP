@@ -1,124 +1,140 @@
 {% extends "base.html" %}
-
-{% block title %}Admin Dashboard - MindMap{% endblock %}
-
-{% block sidebar %}
-<a class="nav-link active" href="{% url 'admin_dashboard' %}">
-    <i>📊</i> Dashboard
-</a>
-<a class="nav-link" href="{% url 'admin_students' %}">
-    <i>👨‍🎓</i> Students
-</a>
-<a class="nav-link" href="{% url 'admin_teachers' %}">
-    <i>👩‍🏫</i> Teachers
-</a>
-<a class="nav-link" href="{% url 'admin_subjects' %}">
-    <i>📚</i> Subjects
-</a>
-<hr style="border-color: var(--blue-light); margin: 1rem 0.5rem;">
-<a class="nav-link text-danger" href="{% url 'logout' %}">
-    <i>🚪</i> Logout
-</a>
-{% endblock %}
-
+{% block title %}Admin Dashboard - MindMap HS{% endblock %}
 {% block content %}
-<div class="page-header">
-    <h1>Admin Dashboard</h1>
-    <p>Welcome, {{ user.get_full_name|default:user.username }}!</p>
+<div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div>
+        <div class="pretitle">Administrator</div>
+        <h1>School Dashboard</h1>
+        <p>High school academic monitoring • School Year {{ current_year }}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'admin_student_create' %}" class="btn btn-light btn-sm fw-bold">➕ Student</a>
+        <a href="{% url 'admin_teacher_create' %}" class="btn btn-light btn-sm fw-bold">➕ Teacher</a>
+        <a href="{% url 'admin_announcements' %}" class="btn btn-light btn-sm fw-bold">📣 Announcement</a>
+    </div>
 </div>
 
-<div class="row">
-    <div class="col-md-3 mb-4">
+<div class="row g-3 mb-1">
+    <div class="col-6 col-lg-3">
         <div class="stat-card">
+            <div class="stat-label">Students</div>
             <h3>{{ total_students }}</h3>
-            <p>Total Students</p>
+            <p>Across all sections</p>
         </div>
     </div>
-    <div class="col-md-3 mb-4">
-        <div class="stat-card">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-green">
+            <div class="stat-label">Teachers</div>
             <h3>{{ total_teachers }}</h3>
-            <p>Total Teachers</p>
+            <p>{{ total_subjects }} subjects assigned</p>
         </div>
     </div>
-    <div class="col-md-3 mb-4">
-        <div class="stat-card">
-            <h3>{{ total_subjects }}</h3>
-            <p>Total Subjects</p>
-        </div>
-    </div>
-    <div class="col-md-3 mb-4">
-        <div class="stat-card">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-orange">
+            <div class="stat-label">Grade Records</div>
             <h3>{{ total_grades }}</h3>
-            <p>Total Grades</p>
+            <p>{{ total_assessments }} assessments</p>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-slate">
+            <div class="stat-label">Progress Notes</div>
+            <h3>{{ total_progress }}</h3>
+            <p>Written by subject teachers</p>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Recent Students</h3>
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card h-100 mb-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title">Sections</h3>
+                <a href="{% url 'admin_sections' %}" class="btn btn-sm btn-outline-primary">Manage</a>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Student Number</th>
-                                <th>Name</th>
-                                <th>Course</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for student in recent_students %}
-                            <tr>
-                                <td>{{ student.student_number }}</td>
-                                <td>{{ student.get_full_name }}</td>
-                                <td>{{ student.course|default:"-" }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="3" class="text-center text-muted">No students found</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead><tr><th>Section</th><th>Adviser</th><th class="text-center">Students</th><th class="text-center">Average</th></tr></thead>
+                    <tbody>
+                        {% for row in section_rows %}
+                        <tr>
+                            <td class="fw-semibold">{{ row.section.display_name }}</td>
+                            <td>{{ row.section.adviser.get_full_name|default:"—" }}</td>
+                            <td class="text-center">{{ row.count }}</td>
+                            <td class="text-center fw-bold">{{ row.average|floatformat:2|default:"—" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4"><div class="empty-state">No sections yet.</div></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+    <div class="col-lg-6">
+        <div class="card h-100 mb-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title">Teacher Assignments</h3>
+                <a href="{% url 'admin_assignments' %}" class="btn btn-sm btn-outline-primary">Details</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead><tr><th>Teacher</th><th>Subjects</th></tr></thead>
+                    <tbody>
+                        {% for teacher in teacher_rows %}
+                        <tr>
+                            <td class="fw-semibold">{{ teacher.get_full_name }}</td>
+                            <td>
+                                {% for subject in teacher.subjects.all %}
+                                <span class="badge bg-primary-subtle text-primary">{{ subject.name }}</span>
+                                {% empty %}<span class="text-muted">No subject assigned</span>{% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Recent Teachers</h3>
+<div class="row g-3 mt-1">
+    <div class="col-lg-6">
+        <div class="card h-100 mb-0">
+            <div class="card-header"><h3 class="card-title">Recent Students</h3></div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead><tr><th>Name</th><th>ID</th><th>Section</th></tr></thead>
+                    <tbody>
+                        {% for student in recent_students %}
+                        <tr>
+                            <td>{{ student.get_full_name }}</td>
+                            <td>{{ student.student_number }}</td>
+                            <td>{{ student.section.name }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3"><div class="empty-state">No students yet.</div></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100 mb-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title">Announcements</h3>
+                <a href="{% url 'admin_announcements' %}" class="btn btn-sm btn-outline-primary">Manage</a>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Department</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for teacher in recent_teachers %}
-                            <tr>
-                                <td>{{ teacher.get_full_name }}</td>
-                                <td>{{ teacher.email }}</td>
-                                <td>{{ teacher.department|default:"-" }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="3" class="text-center text-muted">No teachers found</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                {% for announcement in announcements %}
+                <div class="announcement-item {% if forloop.first %}pt-0{% endif %}">
+                    <div class="fw-bold">{% if announcement.is_pinned %}📌 {% endif %}{{ announcement.title }}</div>
+                    <div class="stamp">{{ announcement.get_audience_display }} • {{ announcement.created_at|date:"M d, Y" }}</div>
                 </div>
+                {% empty %}
+                <div class="empty-state">No announcements posted.</div>
+                {% endfor %}
             </div>
         </div>
     </div>

@@ -1,92 +1,72 @@
 {% extends "base.html" %}
-
-{% block title %}Manage Students - Admin{% endblock %}
-
-{% block sidebar %}
-<a class="nav-link" href="{% url 'admin_dashboard' %}">
-    <i>📊</i> Dashboard
-</a>
-<a class="nav-link active" href="{% url 'admin_students' %}">
-    <i>👨‍🎓</i> Students
-</a>
-<a class="nav-link" href="{% url 'admin_teachers' %}">
-    <i>👩‍🏫</i> Teachers
-</a>
-<a class="nav-link" href="{% url 'admin_subjects' %}">
-    <i>📚</i> Subjects
-</a>
-{% endblock %}
-
+{% block title %}Students - MindMap HS{% endblock %}
 {% block content %}
-<div class="page-header d-flex justify-content-between align-items-center">
+<div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-3">
     <div>
-        <h1>Manage Students</h1>
-        <p>Add, edit, or remove student accounts</p>
+        <div class="pretitle">Student Records</div>
+        <h1>Students</h1>
+        <p>Organized by name, student ID, grade level, section and academic performance.</p>
     </div>
-    <a href="{% url 'admin_student_create' %}" class="btn btn-primary">
-        ➕ Add New Student
-    </a>
+    <a href="{% url 'admin_student_create' %}" class="btn btn-light btn-sm fw-bold">➕ Add student</a>
 </div>
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Student List</h3>
-        <div class="card-actions">
-            <form method="get" class="d-flex">
-                <input type="text" name="search" class="form-control me-2" 
-                       placeholder="Search students..." value="{{ search_query }}">
-                <button type="submit" class="btn btn-primary">Search</button>
-            </form>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr>
-                        <th style="width: 60px;">Photo</th>
-                        <th>Student Number</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Course</th>
-                        <th>Year/Section</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for student in students %}
-                    <tr>
-                        <td>
-                            <img src="{{ student.get_profile_picture_url }}" alt="{{ student.get_full_name }}" 
-                                 class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
-                        </td>
-                        <td><strong>{{ student.student_number }}</strong></td>
-                        <td>{{ student.get_full_name }}</td>
-                        <td>{{ student.email|default:"-" }}</td>
-                        <td>{{ student.course|default:"-" }}</td>
-                        <td>
-                            {% if student.year_level %}{{ student.year_level }}{% endif %}
-                            {% if student.section %} - {{ student.section }}{% endif %}
-                            {% if not student.year_level and not student.section %}-{% endif %}
-                        </td>
-                        <td>
-                            <a href="{% url 'admin_student_edit' student.student_id %}" 
-                               class="btn btn-sm btn-outline-primary">Edit</a>
-                            <form method="post" action="{% url 'admin_student_delete' student.student_id %}" 
-                                  style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this student?');">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center text-muted py-4">No students found</td>
-                    </tr>
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small text-muted mb-1">Search</label>
+                <input type="text" name="search" value="{{ search_query }}" class="form-control form-control-sm" placeholder="Name or student ID">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-1">Section</label>
+                <select name="section" class="form-select form-select-sm">
+                    <option value="">All sections</option>
+                    {% for section in sections %}
+                    <option value="{{ section.pk }}" {% if section.pk|stringformat:"s" == section_filter %}selected{% endif %}>{{ section.name }}</option>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button class="btn btn-sm btn-primary">Filter</button>
+                <a href="{% url 'admin_students' %}" class="btn btn-sm btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr><th>Name</th><th>Student ID</th><th>Grade Level</th><th>Section</th><th class="text-center">Average</th><th>Performance</th><th>Guardian</th><th class="text-end">Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td class="fw-semibold">{{ row.student.get_full_name }}</td>
+                    <td>{{ row.student.student_number }}</td>
+                    <td>{{ row.student.grade_level }}</td>
+                    <td><span class="badge bg-primary-subtle text-primary">{{ row.student.section.name }}</span></td>
+                    <td class="text-center fw-bold">{{ row.average|default:"—" }}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress" style="width:70px;">
+                                <div class="progress-bar bg-{% if row.percent >= 85 %}success{% elif row.percent >= 75 %}warning{% else %}danger{% endif %}" style="width: {{ row.percent }}%;"></div>
+                            </div>
+                            <small class="text-muted">{{ row.label }}</small>
+                        </div>
+                    </td>
+                    <td>{{ row.student.guardian_name|default:"—" }}</td>
+                    <td class="text-end text-nowrap">
+                        <a href="{% url 'admin_student_edit' row.student.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form method="post" action="{% url 'admin_student_delete' row.student.pk %}" class="d-inline" onsubmit="return confirm('Delete this student and their account?');">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8"><div class="empty-state"><span class="icon">👨‍🎓</span>No students found.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

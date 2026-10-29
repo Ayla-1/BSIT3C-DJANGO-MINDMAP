@@ -1,59 +1,80 @@
 {% extends "base.html" %}
-{% block title %}Manage Grades - Teacher{% endblock %}
-{% block sidebar %}
-<a class="nav-link" href="{% url 'teacher_dashboard' %}"><i>📊</i> Dashboard</a>
-<a class="nav-link" href="{% url 'teacher_students' %}"><i>👨‍🎓</i> Students</a>
-<a class="nav-link active" href="{% url 'teacher_grades' %}"><i>📝</i> Grades</a>
-<a class="nav-link" href="{% url 'teacher_assessments' %}"><i>📋</i> Assessments</a>
-<a class="nav-link" href="{% url 'teacher_progress' %}"><i>📈</i> Progress</a>
-{% endblock %}
+{% block title %}Grade Records - MindMap HS{% endblock %}
 {% block content %}
-<div class="page-header d-flex justify-content-between align-items-center">
-    <div><h1>Manage Grades</h1></div>
-    <a href="{% url 'teacher_grade_create' %}" class="btn btn-primary">➕ Add New Grade</a>
+<div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div>
+        <div class="pretitle">Grade Records</div>
+        <h1>My Grade Records</h1>
+        <p>Only grades for {{ teacher.get_full_name }}'s assigned subjects are shown.</p>
+    </div>
+    <a href="{% url 'teacher_gradebook' %}" class="btn btn-light btn-sm fw-bold">📝 Go to gradebook</a>
 </div>
+
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Grade Records</h3>
-        <div class="card-actions">
-            <form method="get" class="d-flex gap-2">
-                <select name="subject" class="form-select">
-                    <option value="">All Subjects</option>
-                    {% for subject in my_subjects %}
-                    <option value="{{ subject.subject_id }}" {% if subject_filter == subject.subject_id|stringformat:"s" %}selected{% endif %}>{{ subject.subject_code }}</option>
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Subject</label>
+                <select name="subject" class="form-select form-select-sm">
+                    <option value="">All my subjects</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.pk }}" {% if subject.pk|stringformat:"s" == subject_filter %}selected{% endif %}>{{ subject.name }}</option>
                     {% endfor %}
                 </select>
-                <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ search_query }}">
-                <button type="submit" class="btn btn-primary">Filter</button>
-            </form>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr><th>Student</th><th>Subject</th><th>S.Y.</th><th>Sem</th><th>Prelim</th><th>Midterm</th><th>Finals</th><th>Final</th><th>Remarks</th><th>Actions</th></tr>
-                </thead>
-                <tbody>
-                    {% for grade in grades %}
-                    <tr>
-                        <td>{{ grade.student.student_number }}</td>
-                        <td>{{ grade.subject.subject_code }}</td>
-                        <td>{{ grade.school_year }}</td>
-                        <td>{{ grade.semester }}</td>
-                        <td>{{ grade.prelim|default:"-" }}</td>
-                        <td>{{ grade.midterm|default:"-" }}</td>
-                        <td>{{ grade.finals|default:"-" }}</td>
-                        <td><strong>{{ grade.final_grade|default:"-" }}</strong></td>
-                        <td><span class="badge {% if grade.remarks == 'PASSED' %}bg-success{% else %}bg-danger{% endif %}">{{ grade.remarks|default:"-" }}</span></td>
-                        <td><a href="{% url 'teacher_grade_edit' grade.grade_id %}" class="btn btn-sm btn-outline-primary">Edit</a></td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="10" class="text-center text-muted py-4">No grades found</td></tr>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Quarter</label>
+                <select name="quarter" class="form-select form-select-sm">
+                    <option value="">All quarters</option>
+                    {% for value, label in quarters %}
+                    <option value="{{ value }}" {% if value|stringformat:"s" == quarter_filter %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-1">Search student</label>
+                <input type="text" name="search" value="{{ search_query }}" class="form-control form-control-sm" placeholder="Name or student ID">
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button class="btn btn-sm btn-primary">Filter</button>
+                <a href="{% url 'teacher_grades' %}" class="btn btn-sm btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Student</th><th>Section</th><th>Subject</th><th>Quarter</th>
+                    <th class="text-center">WW</th><th class="text-center">PT</th><th class="text-center">QA</th>
+                    <th class="text-center">Grade</th><th>Remarks</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for grade in grades %}
+                <tr>
+                    <td class="fw-semibold">{{ grade.student.get_full_name }}<br><small class="text-muted">{{ grade.student.student_number }}</small></td>
+                    <td>{{ grade.student.section.name }}</td>
+                    <td>{{ grade.subject.name }}</td>
+                    <td>Q{{ grade.quarter }}</td>
+                    <td class="text-center">{{ grade.written_work|default:"—" }}</td>
+                    <td class="text-center">{{ grade.performance_task|default:"—" }}</td>
+                    <td class="text-center">{{ grade.quarterly_assessment|default:"—" }}</td>
+                    <td class="text-center fw-bold">{{ grade.final_grade|default:"—" }}</td>
+                    <td>
+                        {% if grade.remarks == 'PASSED' %}<span class="badge bg-success-subtle text-success">Passed</span>
+                        {% elif grade.remarks == 'FAILED' %}<span class="badge bg-danger-subtle text-danger">Failed</span>
+                        {% else %}<span class="badge bg-secondary-subtle text-secondary">Pending</span>{% endif %}
+                    </td>
+                    <td class="text-nowrap">
+                        <a href="{% url 'teacher_gradebook' %}?subject={{ grade.subject.pk }}&section={{ grade.student.section.pk }}&quarter={{ grade.quarter }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="10"><div class="empty-state"><span class="icon">📝</span>No grade records match your filters.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

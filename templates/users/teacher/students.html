@@ -1,21 +1,77 @@
 {% extends "base.html" %}
-{% block title %}Students - Teacher{% endblock %}
-{% block sidebar %}
-<a class="nav-link" href="{% url 'teacher_dashboard' %}"><i>📊</i> Dashboard</a>
-<a class="nav-link active" href="{% url 'teacher_students' %}"><i>👨‍🎓</i> Students</a>
-<a class="nav-link" href="{% url 'teacher_grades' %}"><i>📝</i> Grades</a>
-<a class="nav-link" href="{% url 'teacher_assessments' %}"><i>📋</i> Assessments</a>
-<a class="nav-link" href="{% url 'teacher_progress' %}"><i>📈</i> Progress</a>
-{% endblock %}
+{% block title %}My Students - MindMap HS{% endblock %}
 {% block content %}
-<div class="page-header"><h1>Students</h1></div>
+<div class="page-header">
+    <div class="pretitle">My Classes</div>
+    <h1>My Assigned Students</h1>
+    <p>Students enrolled in the sections where you handle {% for subject in subjects %}{{ subject.name }}{% if not forloop.last %} and {% endif %}{% endfor %}.</p>
+</div>
+
 <div class="card">
-    <div class="card-header"><h3 class="card-title">Student List</h3>
-        <div class="card-actions"><form method="get" class="d-flex"><input type="text" name="search" class="form-control me-2" placeholder="Search..." value="{{ search_query }}"><button type="submit" class="btn btn-primary">Search</button></form></div>
+    <div class="card-header">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-1">Search</label>
+                <input type="text" name="search" value="{{ search_query }}" class="form-control form-control-sm" placeholder="Name or student ID">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Section</label>
+                <select name="section" class="form-select form-select-sm">
+                    <option value="">All sections</option>
+                    {% for section in sections %}
+                    <option value="{{ section.pk }}" {% if section.pk|stringformat:"s" == section_filter %}selected{% endif %}>{{ section.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button class="btn btn-sm btn-primary">Filter</button>
+                <a href="{% url 'teacher_students' %}" class="btn btn-sm btn-outline-secondary">Reset</a>
+            </div>
+        </form>
     </div>
-    <div class="card-body"><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Student Number</th><th>Name</th><th>Course</th><th>Year/Section</th></tr></thead><tbody>
-    {% for student in students %}<tr><td><strong>{{ student.student_number }}</strong></td><td>{{ student.get_full_name }}</td><td>{{ student.course|default:"-" }}</td><td>{% if student.year_level %}{{ student.year_level }}{% endif %}{% if student.section %} - {{ student.section }}{% endif %}</td></tr>
-    {% empty %}<tr><td colspan="4" class="text-center text-muted py-4">No students found</td></tr>{% endfor %}
-    </tbody></table></div></div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Student</th><th>Student ID</th><th>Grade &amp; Section</th>
+                    {% for subject in subjects %}<th class="text-center">{{ subject.name }}</th>{% endfor %}
+                    <th class="text-center">Average</th><th>Performance</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td class="fw-semibold">{{ row.student.get_full_name }}</td>
+                    <td>{{ row.student.student_number }}</td>
+                    <td>{{ row.student.grade_level }} - {{ row.student.section.name }}</td>
+                    {% for subject_row in row.rows %}
+                    <td class="text-center">
+                        {% if subject_row.latest %}
+                        <span class="grade-pill {% if subject_row.latest.final_grade >= 85 %}good{% elif subject_row.latest.final_grade >= 75 %}fair{% else %}low{% endif %}">{{ subject_row.latest.final_grade }}</span>
+                        {% else %}<span class="grade-pill empty">—</span>{% endif %}
+                    </td>
+                    {% endfor %}
+                    <td class="text-center fw-bold">{{ row.average|default:"—" }}</td>
+                    <td>
+                        {% if row.average %}
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress" style="width:70px;">
+                                <div class="progress-bar bg-{% if row.average >= 85 %}success{% elif row.average >= 75 %}warning{% else %}danger{% endif %}" style="width: {{ row.average|floatformat:0 }}%;"></div>
+                            </div>
+                            <small class="text-muted">{{ row.average|floatformat:2 }}</small>
+                        </div>
+                        {% else %}<span class="text-muted">No grades</span>{% endif %}
+                    </td>
+                    <td class="text-nowrap">
+                        <a href="{% url 'teacher_student_detail' row.student.pk %}" class="btn btn-sm btn-outline-primary">Open</a>
+                        <a href="{% url 'teacher_progress_create' %}?student={{ row.student.pk }}" class="btn btn-sm btn-outline-secondary">+ Progress</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8"><div class="empty-state"><span class="icon">👨‍🎓</span>No students match your filters.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

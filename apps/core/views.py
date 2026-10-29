@@ -1,7 +1,13 @@
 from datetime import timedelta
 
 from django.contrib import messages
-from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth import (
+    authenticate,
+    get_user_model,
+    login,
+    logout,
+    update_session_auth_hash,
+)
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -10,12 +16,10 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from apps.core.models import UserProfile
+from apps.users.access import get_teacher, student_for_user, teacher_subjects
+from apps.users.analytics import overall_average, student_snapshot
 
 User = get_user_model()
-
-# Import models for profile view
-from apps.users.models import Teacher, Student, Subject, Grade
-from django.db.models import Avg
 
 MAX_FAILED_ATTEMPTS = 5
 LOCK_DURATION = timedelta(minutes=1)
@@ -214,72 +218,50 @@ def test_dropdown(request):
 
 @login_required(login_url='login')
 def user_profile(request):
-    """User profile page - shows different info based on role"""
-    
-    # Handle password change
+    """Role-aware profile page. Every signed-in user may change their own password."""
+
     if request.method == 'POST' and request.POST.get('action') == 'change_password':
-        current_password = request.POST.get('current_password')
-        new_password = request.POST.get('new_password')
-        confirm_password = request.POST.get('confirm_password')
-        
-        # Verify current password
+        current_password = request.POST.get('current_password', '')
+        new_password = request.POST.get('new_password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+
         if not request.user.check_password(current_password):
             messages.error(request, 'Current password is incorrect.')
-            return redirect('user_profile')
-        
-        # Verify new passwords match
-        if new_password != confirm_password:
+        elif new_password != confirm_password:
             messages.error(request, 'New passwords do not match.')
-            return redirect('user_profile')
-        
-        # Verify password length
-        if len(new_password) < 8:
+        elif len(new_password) < 8:
             messages.error(request, 'Password must be at least 8 characters long.')
-            return redirect('user_profile')
-        
-        # Change password
-        request.user.set_password(new_password)
-        request.user.save()
-        
-        # Update session to prevent logout
-        from django.contrib.auth import update_session_auth_hash
-        update_session_auth_hash(request, request.user)
-        
-        messages.success(request, 'Password changed successfully!')
+        else:
+            request.user.set_password(new_password)
+            request.user.save()
+            update_session_auth_hash(request, request.user)
+            messages.success(request, 'Password changed successfully.')
         return redirect('user_profile')
-    
+
     try:
         profile = request.user.profile
-        role = profile.role
-        
-        context = {
-            'profile': profile,
-            'role': role,
-        }
-        
-        # Add role-specific information
-        if role == 'teacher':
-            try:
-                username = request.user.username
-                teacher = Teacher.objects.get(email__startswith=username)
-                context['teacher'] = teacher
-                context['my_subjects'] = Subject.objects.filter(teacher=teacher)
-            except Teacher.DoesNotExist:
-                pass
-                
-        elif role == 'student':
-            try:
-                student = Student.objects.get(student_number=request.user.username)
-                context['student'] = student
-                # Get statistics
-                all_grades = Grade.objects.filter(student=student, final_grade__isnull=False)
-                context['total_grades'] = all_grades.count()
-                context['avg_grade'] = all_grades.aggregate(Avg('final_grade'))['final_grade__avg']
-            except Student.DoesNotExist:
-                pass
-        
-        return render(request, 'profile.html', context)
-        
     except UserProfile.DoesNotExist:
         messages.error(request, 'Profile not found.')
         return redirect('dashboard')
+
+    context = {'profile': profile, 'role': profile.role}
+
+    if profile.role == 'teacher':
+        teacher = get_teacher(request.user)
+        context['teacher'] = teacher
+        context['my_subjects'] = teacher_subjects(teacher)
+        context['student_count'] = teacher.assigned_students().count() if teacher else 0
+    elif profile.role == 'student':
+        student = student_for_user(request.user)
+        context['student'] = student
+        if student:
+            snapshot = student_snapshot(student)
+            context['average'] = snapshot['average']
+            context['subject_rows'] = snapshot['rows']
+            context['graded_count'] = snapshot['graded_count']
+            context['passed_count'] = snapshot['passed_count']
+    else:
+        context['total_students'] = User.objects.filter(profile__role='student').count()
+        context['total_teachers'] = User.objects.filter(profile__role='teacher').count()
+
+    return render(request, 'accounts/profile.html', context)

@@ -1,38 +1,68 @@
 from django.contrib import admin
-from apps.users.models import Student, Teacher, Subject, Grade, LearningAssessment, AcademicProgress
 
-@admin.register(Student)
-class StudentAdmin(admin.ModelAdmin):
-    list_display = ['student_number', 'first_name', 'last_name', 'course', 'year_level', 'section']
-    search_fields = ['student_number', 'first_name', 'last_name', 'email']
-    list_filter = ['course', 'year_level', 'section']
+from apps.users.models import (
+    AcademicProgress,
+    Announcement,
+    Grade,
+    LearningAssessment,
+    Section,
+    Student,
+    Subject,
+    Teacher,
+)
+
+
+@admin.register(Section)
+class SectionAdmin(admin.ModelAdmin):
+    list_display = ['name', 'grade_level', 'adviser', 'school_year']
+    list_filter = ['grade_level', 'school_year']
+    search_fields = ['name', 'code']
+
 
 @admin.register(Teacher)
 class TeacherAdmin(admin.ModelAdmin):
-    list_display = ['teacher_id', 'first_name', 'last_name', 'email', 'department']
+    list_display = ['first_name', 'last_name', 'email', 'department', 'user']
     search_fields = ['first_name', 'last_name', 'email']
     list_filter = ['department']
 
+
+@admin.register(Student)
+class StudentAdmin(admin.ModelAdmin):
+    list_display = ['student_number', 'last_name', 'first_name', 'grade_level', 'section']
+    search_fields = ['student_number', 'first_name', 'last_name', 'email']
+    list_filter = ['grade_level', 'section']
+
+
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
-    list_display = ['subject_code', 'subject_name', 'units', 'teacher']
-    search_fields = ['subject_code', 'subject_name']
-    list_filter = ['teacher']
+    list_display = ['code', 'name', 'teacher']
+    search_fields = ['code', 'name']
+    list_filter = ['teacher', 'sections']
+
 
 @admin.register(Grade)
 class GradeAdmin(admin.ModelAdmin):
-    list_display = ['student', 'subject', 'school_year', 'semester', 'final_grade', 'remarks']
-    search_fields = ['student__student_number', 'subject__subject_code']
-    list_filter = ['school_year', 'semester', 'remarks']
+    list_display = ['student', 'subject', 'quarter', 'final_grade', 'remarks']
+    search_fields = ['student__student_number', 'subject__code']
+    list_filter = ['quarter', 'school_year', 'remarks', 'subject']
+
 
 @admin.register(LearningAssessment)
 class LearningAssessmentAdmin(admin.ModelAdmin):
-    list_display = ['student', 'subject', 'skill_area', 'assessment_date', 'score', 'max_score']
-    search_fields = ['student__student_number', 'subject__subject_code', 'skill_area']
-    list_filter = ['assessment_date', 'assessment_type']
+    list_display = ['student', 'subject', 'title', 'assessment_type', 'assessment_date', 'score', 'max_score']
+    search_fields = ['student__student_number', 'subject__code', 'title']
+    list_filter = ['assessment_type', 'quarter', 'assessment_date', 'subject']
+
 
 @admin.register(AcademicProgress)
 class AcademicProgressAdmin(admin.ModelAdmin):
-    list_display = ['student', 'assessment_date', 'progress_category', 'status', 'teacher']
-    search_fields = ['student__student_number', 'progress_category']
-    list_filter = ['status', 'assessment_date']
+    list_display = ['student', 'subject', 'record_date', 'status', 'teacher']
+    search_fields = ['student__student_number', 'subject__code']
+    list_filter = ['status', 'record_date', 'subject']
+
+
+@admin.register(Announcement)
+class AnnouncementAdmin(admin.ModelAdmin):
+    list_display = ['title', 'audience', 'is_pinned', 'created_at']
+    list_filter = ['audience', 'is_pinned']
+    search_fields = ['title', 'body']

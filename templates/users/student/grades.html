@@ -1,67 +1,117 @@
 {% extends "base.html" %}
-{% block title %}My Grades - Student{% endblock %}
-{% block sidebar %}
-<a class="nav-link" href="{% url 'student_dashboard' %}"><i>📊</i> Dashboard</a>
-<a class="nav-link active" href="{% url 'student_grades' %}"><i>📝</i> My Grades</a>
-<a class="nav-link" href="{% url 'student_assessments' %}"><i>📋</i> Assessments</a>
-<a class="nav-link" href="{% url 'student_progress' %}"><i>📈</i> Progress</a>
-<a class="nav-link" href="{% url 'student_report' %}"><i>📄</i> Progress Report</a>
-{% endblock %}
+{% block title %}My Grades - MindMap HS{% endblock %}
 {% block content %}
-<div class="page-header">
-    <h1>My Grades</h1>
-    <p>View all your academic grades</p>
+<div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div>
+        <div class="pretitle">Academic Records</div>
+        <h1>My Grades</h1>
+        <p>{{ student.get_full_name }} • {{ student.grade_level }} - {{ student.section.name }}</p>
+    </div>
+    <form method="get" class="d-flex align-items-center gap-2">
+        <label class="text-white-50 small text-uppercase fw-bold">School Year</label>
+        <select name="year" class="form-select form-select-sm" style="min-width:150px;" onchange="this.form.submit()">
+            {% for year in years %}
+            <option value="{{ year }}" {% if year == school_year %}selected{% endif %}>{{ year }}</option>
+            {% empty %}
+            <option>{{ school_year }}</option>
+            {% endfor %}
+        </select>
+    </form>
 </div>
-{% if avg_grade %}
-<div class="alert alert-info">
-    <strong>Your Average Grade:</strong> {{ avg_grade|floatformat:2 }}
-</div>
-{% endif %}
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">Grade Records</h3>
-        <div class="card-actions">
-            <form method="get" class="d-flex gap-2">
-                <select name="subject" class="form-select">
-                    <option value="">All Subjects</option>
-                    {% for subject in subjects %}
-                    <option value="{{ subject.subject_id }}" {% if subject_filter == subject.subject_id|stringformat:"s" %}selected{% endif %}>{{ subject.subject_code }}</option>
-                    {% endfor %}
-                </select>
-                <select name="semester" class="form-select">
-                    <option value="">All Semesters</option>
-                    {% for sem in semesters %}
-                    <option value="{{ sem }}" {% if semester_filter == sem %}selected{% endif %}>{{ sem }}</option>
-                    {% endfor %}
-                </select>
-                <button type="submit" class="btn btn-primary">Filter</button>
-            </form>
+
+<div class="row g-3 mb-1">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-label">Average</div>
+            <h3>{{ average|default:"—" }}</h3>
+            <p>{{ school_year }}</p>
         </div>
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover">
-                <thead>
-                    <tr><th>Subject</th><th>School Year</th><th>Semester</th><th>Prelim</th><th>Midterm</th><th>Finals</th><th>Final Grade</th><th>Remarks</th></tr>
-                </thead>
-                <tbody>
-                    {% for grade in grades %}
-                    <tr>
-                        <td><strong>{{ grade.subject.subject_code }}</strong><br><small>{{ grade.subject.subject_name }}</small></td>
-                        <td>{{ grade.school_year }}</td>
-                        <td>{{ grade.semester }}</td>
-                        <td>{{ grade.prelim|default:"-" }}</td>
-                        <td>{{ grade.midterm|default:"-" }}</td>
-                        <td>{{ grade.finals|default:"-" }}</td>
-                        <td><strong>{{ grade.final_grade|default:"-" }}</strong></td>
-                        <td><span class="badge {% if grade.remarks == 'PASSED' %}bg-success{% else %}bg-danger{% endif %}">{{ grade.remarks|default:"-" }}</span></td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="8" class="text-center text-muted py-4">No grades found</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-green">
+            <div class="stat-label">Subjects Graded</div>
+            <h3>{{ graded_count }} / {{ rows|length }}</h3>
+            <p>{{ school_year }}</p>
         </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><h3 class="card-title">Grades per Subject and Quarter</h3></div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Teacher</th>
+                    {% for q in quarters %}<th class="text-center">{{ q.1 }}</th>{% endfor %}
+                    <th class="text-center">Average</th>
+                    <th>Rating</th>
+                    <th style="min-width:130px;">Progress</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td><div class="fw-bold">{{ row.subject.name }}</div><small class="text-muted">{{ row.subject.code }}</small></td>
+                    <td>{{ row.subject.teacher.get_full_name|default:"—" }}</td>
+                    <td class="text-center"><span class="grade-pill {% if row.grades.1 %}{% if row.grades.1.final_grade >= 85 %}good{% elif row.grades.1.final_grade >= 75 %}fair{% else %}low{% endif %}{% else %}empty{% endif %}">{{ row.grades.1.final_grade|default:"—" }}</span></td>
+                    <td class="text-center"><span class="grade-pill {% if row.grades.2 %}{% if row.grades.2.final_grade >= 85 %}good{% elif row.grades.2.final_grade >= 75 %}fair{% else %}low{% endif %}{% else %}empty{% endif %}">{{ row.grades.2.final_grade|default:"—" }}</span></td>
+                    <td class="text-center"><span class="grade-pill {% if row.grades.3 %}{% if row.grades.3.final_grade >= 85 %}good{% elif row.grades.3.final_grade >= 75 %}fair{% else %}low{% endif %}{% else %}empty{% endif %}">{{ row.grades.3.final_grade|default:"—" }}</span></td>
+                    <td class="text-center"><span class="grade-pill {% if row.grades.4 %}{% if row.grades.4.final_grade >= 85 %}good{% elif row.grades.4.final_grade >= 75 %}fair{% else %}low{% endif %}{% else %}empty{% endif %}">{{ row.grades.4.final_grade|default:"—" }}</span></td>
+                    <td class="text-center fw-bold">{{ row.average|default:"—" }}</td>
+                    <td><span class="badge bg-{{ row.bar_class }}-subtle text-{{ row.bar_class }}">{{ row.rating }}</span></td>
+                    <td>
+                        <div class="progress">
+                            <div class="progress-bar bg-{{ row.bar_class }}" style="width: {{ row.percent }}%;"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9"><div class="empty-state"><span class="icon">📚</span>No grades recorded for this school year.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Score Breakdown</h3>
+        <small class="text-muted">Written Work 30% • Performance Task 50% • Quarterly Assessment 20%</small>
+    </div>
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Subject</th><th>Quarter</th>
+                    <th class="text-center">Written Work</th>
+                    <th class="text-center">Performance Task</th>
+                    <th class="text-center">Quarterly Assessment</th>
+                    <th class="text-center">Quarter Grade</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for grade in grade_records %}
+                <tr>
+                    <td>{{ grade.subject.name }}</td>
+                    <td>Quarter {{ grade.quarter }}</td>
+                    <td class="text-center">{{ grade.written_work|default:"—" }}</td>
+                    <td class="text-center">{{ grade.performance_task|default:"—" }}</td>
+                    <td class="text-center">{{ grade.quarterly_assessment|default:"—" }}</td>
+                    <td class="text-center fw-bold">{{ grade.final_grade|default:"—" }}</td>
+                    <td>
+                        {% if grade.remarks == 'PASSED' %}<span class="badge bg-success-subtle text-success">Passed</span>
+                        {% elif grade.remarks == 'FAILED' %}<span class="badge bg-danger-subtle text-danger">Failed</span>
+                        {% else %}<span class="badge bg-secondary-subtle text-secondary">Pending</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7"><div class="empty-state"><span class="icon">🧮</span>No scores encoded yet.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

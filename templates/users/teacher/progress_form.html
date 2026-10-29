@@ -1,25 +1,90 @@
 {% extends "base.html" %}
-{% block title %}Add Progress - Teacher{% endblock %}
-{% block sidebar %}
-<a class="nav-link" href="{% url 'teacher_dashboard' %}"><i>📊</i> Dashboard</a>
-<a class="nav-link" href="{% url 'teacher_students' %}"><i>👨‍🎓</i> Students</a>
-<a class="nav-link" href="{% url 'teacher_grades' %}"><i>📝</i> Grades</a>
-<a class="nav-link" href="{% url 'teacher_assessments' %}"><i>📋</i> Assessments</a>
-<a class="nav-link active" href="{% url 'teacher_progress' %}"><i>📈</i> Progress</a>
-{% endblock %}
+{% block title %}{% if record %}Edit Progress Note{% else %}Add Progress Note{% endif %} - MindMap HS{% endblock %}
 {% block content %}
-<div class="page-header"><h1>Add Progress Record</h1></div>
-<div class="row"><div class="col-md-10"><div class="card"><div class="card-body"><form method="post">{% csrf_token %}
-<div class="row">
-<div class="col-md-6 mb-3"><label class="form-label">Student *</label><select class="form-select" name="student_id" required><option value="">Select Student</option>{% for s in students %}<option value="{{ s.student_id }}">{{ s.student_number }} - {{ s.get_full_name }}</option>{% endfor %}</select></div>
-<div class="col-md-6 mb-3"><label class="form-label">Assessment Date *</label><input type="date" class="form-control" name="assessment_date" required></div>
+<div class="page-header">
+    <div class="pretitle">Academic Development</div>
+    <h1>{% if record %}Edit Progress Note{% else %}Add Progress Note{% endif %}</h1>
+    <p>Record your observations for a student in one of your assigned subjects. The student sees this on their dashboard right away.</p>
 </div>
-<div class="row">
-<div class="col-md-6 mb-3"><label class="form-label">Progress Category</label><input type="text" class="form-control" name="progress_category" placeholder="e.g., Academic Performance"></div>
-<div class="col-md-6 mb-3"><label class="form-label">Status *</label><select class="form-select" name="status" required><option value="Improving">Improving</option><option value="Needs Improvement">Needs Improvement</option><option value="Excellent">Excellent</option><option value="At Risk">At Risk</option></select></div>
-</div>
-<div class="mb-3"><label class="form-label">Observation *</label><textarea class="form-control" name="observation" rows="4" required></textarea></div>
-<div class="mb-3"><label class="form-label">Recommendation</label><textarea class="form-control" name="recommendation" rows="3"></textarea></div>
-<div class="d-flex justify-content-between mt-4"><a href="{% url 'teacher_progress' %}" class="btn btn-secondary">Cancel</a><button type="submit" class="btn btn-primary">Add Progress Record</button></div>
-</form></div></div></div></div>
+
+{% if not subjects %}
+<div class="card"><div class="empty-state"><span class="icon">📚</span>You have no assigned subject yet.</div></div>
+{% else %}
+<form method="post">
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Subject <span class="text-danger">*</span></label>
+                    <select name="subject" class="form-select" required>
+                        {% for subject in subjects %}
+                        <option value="{{ subject.pk }}"
+                            {% if record and record.subject_id == subject.pk %}selected{% elif not record and selected_subject and selected_subject.pk == subject.pk %}selected{% endif %}>
+                            {{ subject.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Student <span class="text-danger">*</span></label>
+                    <select name="student" class="form-select" required>
+                        {% for student in students %}
+                        <option value="{{ student.pk }}"
+                            {% if record and record.student_id == student.pk %}selected{% elif not record and selected_student and selected_student.pk == student.pk %}selected{% endif %}>
+                            {{ student.get_full_name }} — {{ student.student_number }} ({{ student.section.name }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Date of observation</label>
+                    <input type="date" name="record_date" class="form-control"
+                           value="{% if record %}{{ record.record_date|date:'Y-m-d' }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Overall status</label>
+                    <select name="status" class="form-select">
+                        {% for value, label in statuses %}
+                        <option value="{{ value }}" {% if record and record.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="note-card strengths">
+                <div class="note-icon">💪</div>
+                <h6>Strengths <span class="text-danger">*</span></h6>
+                <p class="text-muted" style="font-size:0.8rem;">Skills, topics or lessons where the student performs well.</p>
+                <textarea name="strengths" class="form-control" rows="6" required>{% if record %}{{ record.strengths }}{% endif %}</textarea>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="note-card areas">
+                <div class="note-icon">🎯</div>
+                <h6>Areas for Improvement <span class="text-danger">*</span></h6>
+                <p class="text-muted" style="font-size:0.8rem;">Skills or topics that need more practice or support.</p>
+                <textarea name="areas_for_improvement" class="form-control" rows="6" required>{% if record %}{{ record.areas_for_improvement }}{% endif %}</textarea>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="note-card improvements">
+                <div class="note-icon">🚀</div>
+                <h6>Recent Improvements <span class="text-danger">*</span></h6>
+                <p class="text-muted" style="font-size:0.8rem;">Progress made recently: better grades, understanding or performance.</p>
+                <textarea name="recent_improvements" class="form-control" rows="6" required>{% if record %}{{ record.recent_improvements }}{% endif %}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-primary">{% if record %}Save changes{% else %}Save progress note{% endif %}</button>
+        <a href="{% url 'teacher_progress' %}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+{% endif %}
 {% endblock %}

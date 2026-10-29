@@ -1,171 +1,92 @@
 {% extends "base.html" %}
-
-{% block title %}{% if student %}Edit{% else %}Add{% endif %} Student - Admin{% endblock %}
-
-{% block sidebar %}
-<a class="nav-link" href="{% url 'admin_dashboard' %}">
-    <i>📊</i> Dashboard
-</a>
-<a class="nav-link active" href="{% url 'admin_students' %}">
-    <i>👨‍🎓</i> Students
-</a>
-<a class="nav-link" href="{% url 'admin_teachers' %}">
-    <i>👩‍🏫</i> Teachers
-</a>
-<a class="nav-link" href="{% url 'admin_subjects' %}">
-    <i>📚</i> Subjects
-</a>
-{% endblock %}
-
+{% block title %}{% if student %}Edit Student{% else %}Add Student{% endif %} - MindMap HS{% endblock %}
 {% block content %}
 <div class="page-header">
-    <h1>{% if student %}Edit{% else %}Add New{% endif %} Student</h1>
-    <p>{% if student %}Update student information{% else %}Create a new student account{% endif %}</p>
+    <div class="pretitle">Student Records</div>
+    <h1>{% if student %}Edit {{ student.get_full_name }}{% else %}Add Student{% endif %}</h1>
+    <p>Grade level follows the selected section automatically.</p>
 </div>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Student Information</h3>
-            </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    
-                    {% if student %}
-                    <div class="mb-4 text-center">
-                        <div class="mb-3">
-                            <img src="{{ student.get_profile_picture_url }}" alt="Profile Picture" 
-                                 class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #0d6efd;">
-                        </div>
-                        <div>
-                            <label for="profile_picture" class="form-label">Update Profile Picture</label>
-                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
-                            <small class="text-muted">Recommended: Square image, at least 200x200px</small>
-                        </div>
-                    </div>
-                    <hr class="my-4">
-                    {% endif %}
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="student_number" class="form-label">Student Number *</label>
-                            <input type="text" class="form-control" id="student_number" name="student_number" 
-                                   value="{{ student.student_number }}" {% if student %}readonly{% endif %} required>
-                        </div>
-                        {% if not student %}
-                        <div class="col-md-6 mb-3">
-                            <label for="password" class="form-label">Password *</label>
-                            <input type="password" class="form-control" id="password" name="password" 
-                                   placeholder="Default: student123">
-                            <small class="text-muted">Leave blank to use default password (student123)</small>
-                        </div>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="first_name" class="form-label">First Name *</label>
-                            <input type="text" class="form-control" id="first_name" name="first_name" 
-                                   value="{{ student.first_name }}" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="last_name" class="form-label">Last Name *</label>
-                            <input type="text" class="form-control" id="last_name" name="last_name" 
-                                   value="{{ student.last_name }}" required>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" 
-                                   value="{{ student.email }}">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="gender" class="form-label">Gender</label>
-                            <select class="form-select" id="gender" name="gender">
-                                <option value="">Select Gender</option>
-                                <option value="Male" {% if student.gender == "Male" %}selected{% endif %}>Male</option>
-                                <option value="Female" {% if student.gender == "Female" %}selected{% endif %}>Female</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="birthdate" class="form-label">Birthdate</label>
-                            <input type="date" class="form-control" id="birthdate" name="birthdate" 
-                                   value="{{ student.birthdate|date:'Y-m-d' }}">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="enrollment_date" class="form-label">Enrollment Date</label>
-                            <input type="date" class="form-control" id="enrollment_date" name="enrollment_date" 
-                                   value="{{ student.enrollment_date|date:'Y-m-d' }}">
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="course" class="form-label">Course</label>
-                            <input type="text" class="form-control" id="course" name="course" 
-                                   value="{{ student.course }}" placeholder="e.g., BSIT">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="year_level" class="form-label">Year Level</label>
-                            <select class="form-select" id="year_level" name="year_level">
-                                <option value="">Select Year</option>
-                                <option value="1" {% if student.year_level == 1 %}selected{% endif %}>1st Year</option>
-                                <option value="2" {% if student.year_level == 2 %}selected{% endif %}>2nd Year</option>
-                                <option value="3" {% if student.year_level == 3 %}selected{% endif %}>3rd Year</option>
-                                <option value="4" {% if student.year_level == 4 %}selected{% endif %}>4th Year</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="section" class="form-label">Section</label>
-                            <input type="text" class="form-control" id="section" name="section" 
-                                   value="{{ student.section }}" placeholder="e.g., A, B, C">
-                        </div>
-                    </div>
-                    
-                    <h5 class="mt-4 mb-3" style="color: #0d6efd;">Contact Information</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="phone" class="form-label">Phone Number</label>
-                            <input type="text" class="form-control" id="phone" name="phone" 
-                                   value="{{ student.phone }}" placeholder="09XX XXX XXXX">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="address" class="form-label">Address</label>
-                            <input type="text" class="form-control" id="address" name="address" 
-                                   value="{{ student.address }}" placeholder="Complete Address">
-                        </div>
-                    </div>
-                    
-                    <h5 class="mt-4 mb-3" style="color: #0d6efd;">Guardian Information</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="guardian_name" class="form-label">Guardian Name</label>
-                            <input type="text" class="form-control" id="guardian_name" name="guardian_name" 
-                                   value="{{ student.guardian_name }}" placeholder="Parent/Guardian Name">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="guardian_contact" class="form-label">Guardian Contact</label>
-                            <input type="text" class="form-control" id="guardian_contact" name="guardian_contact" 
-                                   value="{{ student.guardian_contact }}" placeholder="09XX XXX XXXX">
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mt-4">
-                        <a href="{% url 'admin_students' %}" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary">
-                            {% if student %}Update Student{% else %}Create Student{% endif %}
-                        </button>
-                    </div>
-                </form>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Student Information</h3></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Student ID / LRN <span class="text-danger">*</span></label>
+                    <input type="text" name="student_number" class="form-control" required
+                           value="{{ student.student_number|default:'' }}" {% if student %}readonly{% endif %}>
+                    {% if not student %}<small class="text-muted">Also used as the student's username.</small>{% endif %}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">First name <span class="text-danger">*</span></label>
+                    <input type="text" name="first_name" class="form-control" required value="{{ student.first_name|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Last name <span class="text-danger">*</span></label>
+                    <input type="text" name="last_name" class="form-control" required value="{{ student.last_name|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" value="{{ student.email|default:'' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Gender</label>
+                    <select name="gender" class="form-select">
+                        <option value="">Select</option>
+                        <option value="Male" {% if student.gender == 'Male' %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if student.gender == 'Female' %}selected{% endif %}>Female</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Birthdate</label>
+                    <input type="date" name="birthdate" class="form-control" value="{{ student.birthdate|date:'Y-m-d' }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Section <span class="text-danger">*</span></label>
+                    <select name="section" class="form-select" required>
+                        {% for section in sections %}
+                        <option value="{{ section.pk }}" {% if student and student.section_id == section.pk %}selected{% endif %}>{{ section.display_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Enrollment date</label>
+                    <input type="date" name="enrollment_date" class="form-control"
+                           value="{% if student %}{{ student.enrollment_date|date:'Y-m-d' }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Profile picture</label>
+                    <input type="file" name="profile_picture" class="form-control" accept="image/*">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Guardian name</label>
+                    <input type="text" name="guardian_name" class="form-control" value="{{ student.guardian_name|default:'' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Guardian contact</label>
+                    <input type="text" name="guardian_contact" class="form-control" value="{{ student.guardian_contact|default:'' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Contact number</label>
+                    <input type="text" name="phone" class="form-control" value="{{ student.phone|default:'' }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">{% if student %}Reset password{% else %}Password{% endif %}</label>
+                    <input type="text" name="password" class="form-control"
+                           placeholder="{% if student %}Leave blank to keep current{% else %}student123{% endif %}">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Address</label>
+                    <input type="text" name="address" class="form-control" value="{{ student.address|default:'' }}">
+                </div>
             </div>
         </div>
+        <div class="card-body border-top d-flex gap-2">
+            <button class="btn btn-primary">{% if student %}Save changes{% else %}Create student{% endif %}</button>
+            <a href="{% url 'admin_students' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
     </div>
-</div>
+</form>
 {% endblock %}

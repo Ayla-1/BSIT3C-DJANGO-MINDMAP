@@ -1,242 +1,307 @@
 {% extends "base.html" %}
-{% block title %}My Dashboard - MindMap{% endblock %}
-{% block sidebar %}
-<a class="nav-link active" href="{% url 'student_dashboard' %}"><i>📊</i> Dashboard</a>
-<a class="nav-link" href="{% url 'student_grades' %}"><i>📝</i> My Grades</a>
-<a class="nav-link" href="{% url 'student_assessments' %}"><i>📋</i> Assessments</a>
-<a class="nav-link" href="{% url 'student_progress' %}"><i>📈</i> Progress</a>
-<a class="nav-link" href="{% url 'student_report' %}"><i>📄</i> Progress Report</a>
-<hr style="border-color: var(--blue-light); margin: 1rem 0.5rem;">
-<a class="nav-link text-danger" href="{% url 'logout' %}"><i>🚪</i> Logout</a>
-{% endblock %}
-{% block content %}
+{% load static %}
+{% block title %}My Dashboard - MindMap HS{% endblock %}
 
-<!-- Student Profile Card -->
-<div class="card mb-4" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white;">
-    <div class="card-body p-4">
-        <div class="row align-items-center">
-            <div class="col-auto">
-                <img src="{{ student.get_profile_picture_url }}" alt="{{ student.get_full_name }}" 
-                     class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-            </div>
-            <div class="col">
-                <h2 class="mb-2" style="font-weight: 600;">{{ student.get_full_name }}</h2>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <p class="mb-1" style="opacity: 0.9;"><i>🎓</i> <strong>Student Number:</strong> {{ student.student_number }}</p>
-                        <p class="mb-1" style="opacity: 0.9;"><i>📚</i> <strong>Course:</strong> {{ student.course|default:"Not Set" }}</p>
-                        <p class="mb-0" style="opacity: 0.9;"><i>📖</i> <strong>Year & Section:</strong> {{ student.year_level|default:"N/A" }}-{{ student.section|default:"N/A" }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        {% if student.email %}
-                        <p class="mb-1" style="opacity: 0.9;"><i>✉️</i> <strong>Email:</strong> {{ student.email }}</p>
-                        {% endif %}
-                        {% if student.phone %}
-                        <p class="mb-1" style="opacity: 0.9;"><i>📱</i> <strong>Phone:</strong> {{ student.phone }}</p>
-                        {% endif %}
-                        {% if student.enrollment_date %}
-                        <p class="mb-0" style="opacity: 0.9;"><i>📅</i> <strong>Enrolled:</strong> {{ student.enrollment_date|date:"M d, Y" }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            <div class="col-auto">
-                <a href="{% url 'user_profile' %}" class="btn btn-light btn-lg">
-                    <i>✏️</i> Edit Profile
-                </a>
-            </div>
+{% block content %}
+<div class="profile-hero">
+    <img src="{{ student.get_profile_picture_url }}" alt="Profile picture" class="avatar">
+    <div class="flex-grow-1">
+        <div class="pretitle text-uppercase" style="font-size:0.68rem;letter-spacing:0.14em;opacity:0.7;">Student Dashboard</div>
+        <h2>{{ student.get_full_name }}</h2>
+        <div class="meta">
+            Student ID: <strong>{{ student.student_number }}</strong> &nbsp;•&nbsp;
+            {{ student.grade_level }} &nbsp;•&nbsp; {{ student.section.name }}
+            {% if student.section.adviser %}&nbsp;•&nbsp; Adviser: {{ student.section.adviser.get_full_name }}{% endif %}
+        </div>
+        <div class="mt-2">
+            <span class="chip">School Year {{ current_year }}</span>
+            <span class="chip">{{ student.email|default:"No email on file" }}</span>
+            {% if student.section.room %}<span class="chip">{{ student.section.room }}</span>{% endif %}
+        </div>
+    </div>
+    <div class="text-lg-end">
+        <div class="stat-label text-uppercase" style="font-size:0.68rem;opacity:0.75;font-weight:700;">General Average</div>
+        <div style="font-size:2.4rem;font-weight:800;line-height:1;">{{ average|default:"—" }}</div>
+        <div style="font-size:0.82rem;opacity:0.8;">{{ rating }}</div>
+    </div>
+</div>
+
+<div class="row g-3 mb-2">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card">
+            <div class="stat-label">General Average</div>
+            <h3>{{ average|default:"—" }}</h3>
+            <p>{{ graded_count }} of {{ rows|length }} subjects graded</p>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-green">
+            <div class="stat-label">Subjects Passed</div>
+            <h3>{{ passed_count }}</h3>
+            <p>{{ failed_count }} below passing grade</p>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-orange">
+            <div class="stat-label">Pending Grades</div>
+            <h3>{{ pending_count }}</h3>
+            <p>Waiting for teacher encoding</p>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card stat-slate">
+            <div class="stat-label">Assessments</div>
+            <h3>{{ assessments|length }}</h3>
+            <p>Recent learning assessment results</p>
         </div>
     </div>
 </div>
-<!-- Academic Performance Overview -->
-<div class="row mb-4">
-    <div class="col-md-3 mb-3">
-        <div class="card text-center" style="border-left: 4px solid #0d6efd;">
-            <div class="card-body">
-                <div style="font-size: 2.5rem; font-weight: 600; color: #0d6efd;">{{ avg_grade|floatformat:2|default:"--" }}</div>
-                <p class="mb-0 text-muted">Average Grade</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card text-center" style="border-left: 4px solid #198754;">
-            <div class="card-body">
-                <div style="font-size: 2.5rem; font-weight: 600; color: #198754;">{{ total_grades }}</div>
-                <p class="mb-0 text-muted">Total Subjects</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card text-center" style="border-left: 4px solid #ffc107;">
-            <div class="card-body">
-                <div style="font-size: 2.5rem; font-weight: 600; color: #ffc107;">{{ recent_assessments|length }}</div>
-                <p class="mb-0 text-muted">Assessments</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card text-center" style="border-left: 4px solid #dc3545;">
-            <div class="card-body">
-                <div style="font-size: 2.5rem; font-weight: 600; color: #dc3545;">{{ recent_progress|length }}</div>
-                <p class="mb-0 text-muted">Progress Reports</p>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Recent Academic Data -->
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header" style="background: linear-gradient(90deg, #0d6efd 0%, #6ea8fe 100%); color: white;">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0" style="font-size: 1.1rem; font-weight: 600;">📝 Recent Grades</h3>
-                    <a href="{% url 'student_grades' %}" class="btn btn-sm btn-light">View All</a>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead style="background-color: #f8f9fa;">
-                            <tr>
-                                <th style="padding: 12px;">Subject</th>
-                                <th style="padding: 12px; text-align: center;">Grade</th>
-                                <th style="padding: 12px; text-align: center;">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for grade in recent_grades %}
-                            <tr>
-                                <td style="padding: 12px;">
-                                    <strong style="color: #0d6efd;">{{ grade.subject.subject_code }}</strong>
-                                    <br>
-                                    <small class="text-muted">{{ grade.school_year }} - {{ grade.semester }}</small>
-                                </td>
-                                <td style="padding: 12px; text-align: center;">
-                                    <strong style="font-size: 1.2rem; {% if grade.final_grade >= 90 %}color: #198754;{% elif grade.final_grade >= 75 %}color: #0d6efd;{% else %}color: #dc3545;{% endif %}">
-                                        {{ grade.final_grade|default:"-" }}
-                                    </strong>
-                                </td>
-                                <td style="padding: 12px; text-align: center;">
-                                    <span class="badge {% if grade.remarks == 'PASSED' %}bg-success{% else %}bg-danger{% endif %}" style="padding: 6px 12px;">
-                                        {{ grade.remarks|default:"-" }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="3" class="text-center text-muted" style="padding: 40px;">
-                                    <i style="font-size: 3rem; opacity: 0.3;">📚</i>
-                                    <p class="mb-0 mt-2">No grades recorded yet</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header" style="background: linear-gradient(90deg, #198754 0%, #20c997 100%); color: white;">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h3 class="card-title mb-0" style="font-size: 1.1rem; font-weight: 600;">📋 Recent Assessments</h3>
-                    <a href="{% url 'student_assessments' %}" class="btn btn-sm btn-light">View All</a>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead style="background-color: #f8f9fa;">
-                            <tr>
-                                <th style="padding: 12px;">Skill Area</th>
-                                <th style="padding: 12px; text-align: center;">Score</th>
-                                <th style="padding: 12px;">Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for assessment in recent_assessments %}
-                            <tr>
-                                <td style="padding: 12px;">
-                                    <strong style="color: #198754;">{{ assessment.skill_area }}</strong>
-                                    <br>
-                                    <small class="text-muted">{{ assessment.subject.subject_code }}</small>
-                                </td>
-                                <td style="padding: 12px; text-align: center;">
-                                    {% if assessment.score and assessment.max_score %}
-                                        {% widthratio assessment.score assessment.max_score 100 as percentage %}
-                                        <strong style="font-size: 1.1rem; {% if percentage >= 90 %}color: #198754;{% elif percentage >= 75 %}color: #0d6efd;{% else %}color: #ffc107;{% endif %}">
-                                            {{ assessment.score }}/{{ assessment.max_score }}
-                                        </strong>
-                                        <br>
-                                        <small class="text-muted">({{ percentage }}%)</small>
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td style="padding: 12px;">
-                                    <small>{{ assessment.assessment_date|date:"M d, Y" }}</small>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="3" class="text-center text-muted" style="padding: 40px;">
-                                    <i style="font-size: 3rem; opacity: 0.3;">📊</i>
-                                    <p class="mb-0 mt-2">No assessments yet</p>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Progress Updates Section -->
-{% if recent_progress %}
+
+<!-- Grades overview -->
 <div class="card">
-    <div class="card-header" style="background: linear-gradient(90deg, #ffc107 0%, #ffca2c 100%); color: #000;">
-        <div class="d-flex justify-content-between align-items-center">
-            <h3 class="card-title mb-0" style="font-size: 1.1rem; font-weight: 600;">📈 Recent Progress Updates</h3>
-            <a href="{% url 'student_progress' %}" class="btn btn-sm btn-dark">View All</a>
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h3 class="card-title">My Grades</h3>
+            <small class="text-muted">{{ current_year }} • Updated by your subject teachers</small>
+        </div>
+        <a href="{% url 'student_grades' %}" class="btn btn-sm btn-outline-primary">View full grade report</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th class="text-center">Q1</th>
+                    <th class="text-center">Q2</th>
+                    <th class="text-center">Q3</th>
+                    <th class="text-center">Q4</th>
+                    <th class="text-center">Latest</th>
+                    <th>Rating</th>
+                    <th style="min-width:130px;">Progress</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td>
+                        <div class="fw-bold">{{ row.subject.name }}</div>
+                        <small class="text-muted">{{ row.subject.teacher.get_full_name|default:"Teacher not assigned" }}</small>
+                    </td>
+                    <td class="text-center">
+                        <span class="grade-pill {% if row.grades.1 %}{% if row.grades.1.final_grade >= 85 %}good{% elif row.grades.1.final_grade >= 75 %}fair{% else %}low{% endif %}{% else %}empty{% endif %}">{{ row.grades.1.final_grade|default:"—" }}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="grade-pill {% if row.grades.2 %}{% if row.grades.2.final_grade >= 85 %}good{% elif row.grades.2.final_grade >= 75 %}fair{% else %}low{% endif %}{% else %}empty{% endif %}">{{ row.grades.2.final_grade|default:"—" }}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="grade-pill {% if row.grades.3 %}{% if row.grades.3.final_grade >= 85 %}good{% elif row.grades.3.final_grade >= 75 %}fair{% else %}low{% endif %}{% else %}empty{% endif %}">{{ row.grades.3.final_grade|default:"—" }}</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="grade-pill {% if row.grades.4 %}{% if row.grades.4.final_grade >= 85 %}good{% elif row.grades.4.final_grade >= 75 %}fair{% else %}low{% endif %}{% else %}empty{% endif %}">{{ row.grades.4.final_grade|default:"—" }}</span>
+                    </td>
+                    <td class="text-center fw-bold">{{ row.latest.final_grade|default:"—" }}</td>
+                    <td>
+                        <span class="badge bg-{{ row.bar_class }}-subtle text-{{ row.bar_class }}">{{ row.rating }}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1">
+                                <div class="progress-bar bg-{{ row.bar_class }}" style="width: {{ row.percent }}%;"></div>
+                            </div>
+                            <small class="text-muted">{{ row.percent }}%</small>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8"><div class="empty-state"><span class="icon">📚</span>No subjects assigned yet.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card h-100 mb-0">
+            <div class="card-header"><h3 class="card-title">Academic Performance Trend</h3></div>
+            <div class="card-body">
+                {% if trend.values %}
+                <div id="trendChart"></div>
+                {% else %}
+                <div class="empty-state"><span class="icon">📈</span>No grades recorded yet.</div>
+                {% endif %}
+            </div>
         </div>
     </div>
-    <div class="card-body" style="background-color: #fffbf0;">
-        <div class="row">
-            {% for progress in recent_progress %}
-            <div class="col-md-6 mb-3">
-                <div class="p-3" style="background: white; border-radius: 12px; border-left: 4px solid #ffc107; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <strong style="color: #0d6efd; font-size: 1rem;">{{ progress.progress_category }}</strong>
-                        <span class="badge" style="background-color: #ffc107; color: #000;">{{ progress.status }}</span>
-                    </div>
-                    <p class="mb-2" style="font-size: 0.9rem; line-height: 1.5;">{{ progress.observation|truncatewords:25 }}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">
-                            <i>👨‍🏫</i> {{ progress.teacher.get_full_name }}
-                        </small>
-                        <small class="text-muted">
-                            <i>📅</i> {{ progress.assessment_date|date:"M d, Y" }}
-                        </small>
-                    </div>
-                </div>
+    <div class="col-lg-5">
+        <div class="card h-100 mb-0">
+            <div class="card-header"><h3 class="card-title">Performance by Subject</h3></div>
+            <div class="card-body">
+                <div id="subjectChart"></div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Strengths / areas / improvements -->
+<div class="row g-3 mt-0">
+    <div class="col-lg-4">
+        <div class="note-card strengths">
+            <div class="note-icon">💪</div>
+            <h6>Strengths</h6>
+            {% for record in progress_groups.strengths %}
+            <div class="note-entry">
+                <div class="subject-label">{{ record.subject.name }}</div>
+                <p>{{ record.strengths }}</p>
+            </div>
+            {% empty %}
+            <p class="text-muted mb-0" style="font-size:0.87rem;">Your teachers have not added strengths yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="note-card areas">
+            <div class="note-icon">🎯</div>
+            <h6>Areas for Improvement</h6>
+            {% for record in progress_groups.improvements_needed %}
+            <div class="note-entry">
+                <div class="subject-label">{{ record.subject.name }}</div>
+                <p>{{ record.areas_for_improvement }}</p>
+            </div>
+            {% empty %}
+            <p class="text-muted mb-0" style="font-size:0.87rem;">No areas for improvement recorded yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="note-card improvements">
+            <div class="note-icon">🚀</div>
+            <h6>Recent Improvements</h6>
+            {% for record in progress_groups.recent_improvements %}
+            <div class="note-entry">
+                <div class="subject-label">{{ record.subject.name }}</div>
+                <p>{{ record.recent_improvements }}</p>
+            </div>
+            {% empty %}
+            <p class="text-muted mb-0" style="font-size:0.87rem;">No recent improvements recorded yet.</p>
             {% endfor %}
         </div>
     </div>
 </div>
-{% else %}
-<div class="card">
-    <div class="card-header" style="background: linear-gradient(90deg, #ffc107 0%, #ffca2c 100%); color: #000;">
-        <h3 class="card-title mb-0" style="font-size: 1.1rem; font-weight: 600;">📈 Progress Updates</h3>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-7">
+        <div class="card h-100 mb-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title">Learning Assessment Results</h3>
+                <a href="{% url 'student_assessments' %}" class="btn btn-sm btn-outline-primary">All results</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead><tr><th>Assessment</th><th>Subject</th><th class="text-center">Score</th><th style="min-width:120px;">Result</th></tr></thead>
+                    <tbody>
+                        {% for row in assessments %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ row.assessment.title }}</div>
+                                <small class="text-muted">{{ row.assessment.get_assessment_type_display }} • {{ row.assessment.assessment_date }}</small>
+                            </td>
+                            <td>{{ row.assessment.subject.name }}</td>
+                            <td class="text-center">
+                                {% if row.assessment.score is not None %}{{ row.assessment.score }}/{{ row.assessment.max_score }}{% else %}—{% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1">
+                                        <div class="progress-bar bg-{{ row.bar_class }}" style="width: {{ row.percent }}%;"></div>
+                                    </div>
+                                    <small class="text-muted">{{ row.percent|default:"—" }}%</small>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4"><div class="empty-state"><span class="icon">🧪</span>No assessments recorded yet.</div></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    <div class="card-body text-center" style="padding: 60px;">
-        <i style="font-size: 4rem; opacity: 0.2;">📈</i>
-        <p class="text-muted mt-3 mb-0">No progress updates yet. Your teachers will post updates here.</p>
+    <div class="col-lg-5">
+        <div class="card h-100 mb-0">
+            <div class="card-header"><h3 class="card-title">Announcements</h3></div>
+            <div class="card-body">
+                {% for announcement in announcements %}
+                <div class="announcement-item pt-0">
+                    <div class="fw-bold">
+                        {% if announcement.is_pinned %}📌 {% endif %}{{ announcement.title }}
+                    </div>
+                    <p class="mb-1 text-muted" style="font-size:0.87rem;">{{ announcement.body }}</p>
+                    <div class="stamp">{{ announcement.created_at|date:"M d, Y" }}</div>
+                </div>
+                {% empty %}
+                <div class="empty-state"><span class="icon">📣</span>No announcements right now.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if student.guardian_name or student.address or student.phone %}
+<div class="card mt-3">
+    <div class="card-header"><h3 class="card-title">Student Profile</h3></div>
+    <div class="card-body">
+        <div class="row g-3" style="font-size:0.9rem;">
+            <div class="col-md-3"><div class="text-muted small">Student ID</div><div class="fw-semibold">{{ student.student_number }}</div></div>
+            <div class="col-md-3"><div class="text-muted small">Grade level &amp; section</div><div class="fw-semibold">{{ student.grade_level }} - {{ student.section.name }}</div></div>
+            <div class="col-md-3"><div class="text-muted small">Gender</div><div class="fw-semibold">{{ student.gender|default:"—" }}</div></div>
+            <div class="col-md-3"><div class="text-muted small">Birthdate</div><div class="fw-semibold">{{ student.birthdate|date:"M d, Y"|default:"—" }}</div></div>
+            <div class="col-md-3"><div class="text-muted small">Guardian</div><div class="fw-semibold">{{ student.guardian_name|default:"—" }}</div></div>
+            <div class="col-md-3"><div class="text-muted small">Guardian contact</div><div class="fw-semibold">{{ student.guardian_contact|default:"—" }}</div></div>
+            <div class="col-md-3"><div class="text-muted small">Contact number</div><div class="fw-semibold">{{ student.phone|default:"—" }}</div></div>
+            <div class="col-md-3"><div class="text-muted small">Address</div><div class="fw-semibold">{{ student.address|default:"—" }}</div></div>
+        </div>
     </div>
 </div>
 {% endif %}
+{% endblock %}
 
+{% block extra_js %}
+<script src="{% static 'libs/apexcharts/dist/apexcharts.min.js' %}"></script>
+{{ trend|json_script:"trend-data" }}
+<script>
+(function () {
+    if (typeof ApexCharts === 'undefined') { return; }
+
+    var trend = JSON.parse(document.getElementById('trend-data').textContent);
+
+    if (trend.values && trend.values.length) {
+        new ApexCharts(document.querySelector('#trendChart'), {
+            chart: { type: 'area', height: 300, toolbar: { show: false } },
+            series: [{ name: 'Average grade', data: trend.values }],
+            xaxis: { categories: trend.labels },
+            yaxis: { min: 60, max: 100, title: { text: 'Grade' } },
+            stroke: { curve: 'smooth', width: 3 },
+            colors: ['#4f46e5'],
+            fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.05 } },
+            dataLabels: { enabled: true, style: { fontSize: '11px' } },
+            tooltip: { y: { formatter: function (val) { return val + '%'; } } }
+        }).render();
+    }
+
+    var labels = [{% for row in rows %}"{{ row.subject.name|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+    var values = [{% for row in rows %}{{ row.percent }}{% if not forloop.last %},{% endif %}{% endfor %}];
+
+    new ApexCharts(document.querySelector('#subjectChart'), {
+        chart: { type: 'bar', height: 300, toolbar: { show: false } },
+        series: [{ name: 'Latest grade', data: values }],
+        plotOptions: { bar: { horizontal: true, borderRadius: 4, barHeight: '55%' } },
+        xaxis: { categories: labels, max: 100 },
+        colors: ['#22c55e'],
+        dataLabels: { enabled: true, formatter: function (val) { return val + '%'; } },
+        tooltip: { y: { formatter: function (val) { return val + '%'; } } }
+    }).render();
+})();
+</script>
 {% endblock %}
