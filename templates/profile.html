@@ -32,7 +32,7 @@
                         <tr>
                             <td><strong>Role:</strong></td>
                             <td>
-                                <span class="badge" style="background-color: var(--pink-primary); font-size: 0.9rem;">
+                                <span class="badge" style="background-color: var(--blue-primary); font-size: 0.9rem;">
                                     {{ role|upper }}
                                 </span>
                             </td>
@@ -82,7 +82,7 @@
                 
                 {% if my_subjects %}
                 <hr>
-                <h5 class="mb-3" style="color: var(--pink-primary);">My Subjects</h5>
+                <h5 class="mb-3" style="color: var(--blue-primary);">My Subjects</h5>
                 <div class="table-responsive">
                     <table class="table table-sm">
                         <thead>
@@ -147,17 +147,17 @@
                 </table>
                 
                 <hr>
-                <h5 class="mb-3" style="color: var(--pink-primary);">Academic Summary</h5>
+                <h5 class="mb-3" style="color: var(--blue-primary);">Academic Summary</h5>
                 <div class="row text-center">
                     <div class="col-6 mb-3">
-                        <div class="p-3" style="background-color: var(--pink-lighter); border-radius: 8px;">
-                            <h4 style="color: var(--pink-primary); margin: 0;">{{ total_grades|default:0 }}</h4>
+                        <div class="p-3" style="background-color: var(--blue-lighter); border-radius: 8px;">
+                            <h4 style="color: var(--blue-primary); margin: 0;">{{ total_grades|default:0 }}</h4>
                             <small>Total Grades</small>
                         </div>
                     </div>
                     <div class="col-6 mb-3">
-                        <div class="p-3" style="background-color: var(--pink-lighter); border-radius: 8px;">
-                            <h4 style="color: var(--pink-primary); margin: 0;">{{ avg_grade|floatformat:2|default:"N/A" }}</h4>
+                        <div class="p-3" style="background-color: var(--blue-lighter); border-radius: 8px;">
+                            <h4 style="color: var(--blue-primary); margin: 0;">{{ avg_grade|floatformat:2|default:"N/A" }}</h4>
                             <small>Average Grade</small>
                         </div>
                     </div>
@@ -232,9 +232,9 @@
 <!-- Change Password Modal -->
 <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content" style="background-color: var(--pink-lighter);">
-            <div class="modal-header" style="border-bottom: 2px solid var(--pink-light);">
-                <h5 class="modal-title" id="changePasswordModalLabel" style="color: var(--pink-primary);">Change Password</h5>
+        <div class="modal-content" style="background-color: white; border: 2px solid var(--blue-lighter);">
+            <div class="modal-header" style="border-bottom: 2px solid var(--blue-light); background-color: var(--blue-lighter);">
+                <h5 class="modal-title" id="changePasswordModalLabel" style="color: var(--blue-primary);">Change Password</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="POST" action="{% url 'user_profile' %}">
@@ -255,7 +255,7 @@
                         <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
                     </div>
                 </div>
-                <div class="modal-footer" style="border-top: 2px solid var(--pink-light);">
+                <div class="modal-footer" style="border-top: 2px solid var(--blue-light); background-color: var(--blue-lighter);">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Change Password</button>
                 </div>

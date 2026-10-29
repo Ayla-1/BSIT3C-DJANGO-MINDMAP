@@ -14,6 +14,11 @@ class Student(models.Model):
     year_level = models.IntegerField(null=True, blank=True)
     section = models.CharField(max_length=50, null=True, blank=True)
     enrollment_date = models.DateField(null=True, blank=True)
+    profile_picture = models.ImageField(upload_to='students/', null=True, blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
+    guardian_name = models.CharField(max_length=200, null=True, blank=True)
+    guardian_contact = models.CharField(max_length=20, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -32,6 +37,12 @@ class Student(models.Model):
             return User.objects.get(username=self.student_number)
         except User.DoesNotExist:
             return None
+    
+    def get_profile_picture_url(self):
+        """Get profile picture URL or default"""
+        if self.profile_picture:
+            return self.profile_picture.url
+        return '/static/img/default-avatar.svg'
 
 
 class Teacher(models.Model):
@@ -40,6 +51,11 @@ class Teacher(models.Model):
     last_name = models.CharField(max_length=100)
     email = models.EmailField(max_length=150, unique=True)
     department = models.CharField(max_length=100, null=True, blank=True)
+    profile_picture = models.ImageField(upload_to='teachers/', null=True, blank=True)
+    phone = models.CharField(max_length=20, null=True, blank=True)
+    specialization = models.CharField(max_length=200, null=True, blank=True)
+    qualification = models.CharField(max_length=200, null=True, blank=True)
+    bio = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -59,6 +75,12 @@ class Teacher(models.Model):
             return User.objects.get(username=username)
         except User.DoesNotExist:
             return None
+    
+    def get_profile_picture_url(self):
+        """Get profile picture URL or default"""
+        if self.profile_picture:
+            return self.profile_picture.url
+        return '/static/img/default-avatar.svg'
 
 
 class Subject(models.Model):

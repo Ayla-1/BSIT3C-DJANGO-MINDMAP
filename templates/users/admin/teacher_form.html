@@ -11,8 +11,25 @@
     <h1>{% if teacher %}Edit{% else %}Add New{% endif %} Teacher</h1>
 </div>
 <div class="row"><div class="col-md-8"><div class="card"><div class="card-body">
-<form method="post">
+<form method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    
+    {% if teacher %}
+    <div class="mb-4 text-center">
+        <div class="mb-3">
+            <img src="{{ teacher.get_profile_picture_url }}" alt="Profile Picture" 
+                 class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #0d6efd;">
+        </div>
+        <div>
+            <label for="profile_picture" class="form-label">Update Profile Picture</label>
+            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+            <small class="text-muted">Recommended: Square image, at least 200x200px</small>
+        </div>
+    </div>
+    <hr class="my-4">
+    {% endif %}
+    
+    <h5 class="mb-3" style="color: #0d6efd;">Basic Information</h5>
     <div class="row">
         <div class="col-md-6 mb-3">
             <label class="form-label">First Name *</label>
@@ -29,11 +46,33 @@
             <input type="email" class="form-control" name="email" value="{{ teacher.email }}" {% if teacher %}readonly{% endif %} required>
         </div>
         <div class="col-md-6 mb-3">
+            <label class="form-label">Phone Number</label>
+            <input type="text" class="form-control" name="phone" value="{{ teacher.phone }}" placeholder="09XX XXX XXXX">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
             <label class="form-label">Department</label>
             <input type="text" class="form-control" name="department" value="{{ teacher.department }}">
         </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Specialization</label>
+            <input type="text" class="form-control" name="specialization" value="{{ teacher.specialization }}" placeholder="e.g., Computer Science">
+        </div>
     </div>
+    
+    <h5 class="mt-4 mb-3" style="color: #0d6efd;">Professional Information</h5>
+    <div class="mb-3">
+        <label class="form-label">Qualification</label>
+        <input type="text" class="form-control" name="qualification" value="{{ teacher.qualification }}" placeholder="e.g., Master of Science in Computer Science">
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Bio</label>
+        <textarea class="form-control" name="bio" rows="4" placeholder="Brief biography or teaching philosophy">{{ teacher.bio }}</textarea>
+    </div>
+    
     {% if not teacher %}
+    <h5 class="mt-4 mb-3" style="color: #0d6efd;">Account Setup</h5>
     <div class="mb-3">
         <label class="form-label">Password</label>
         <input type="password" class="form-control" name="password" placeholder="Default: teacher123">

@@ -30,8 +30,23 @@
                 <h3 class="card-title">Student Information</h3>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
+                    
+                    {% if student %}
+                    <div class="mb-4 text-center">
+                        <div class="mb-3">
+                            <img src="{{ student.get_profile_picture_url }}" alt="Profile Picture" 
+                                 class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #0d6efd;">
+                        </div>
+                        <div>
+                            <label for="profile_picture" class="form-label">Update Profile Picture</label>
+                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                            <small class="text-muted">Recommended: Square image, at least 200x200px</small>
+                        </div>
+                    </div>
+                    <hr class="my-4">
+                    {% endif %}
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -111,6 +126,34 @@
                             <label for="section" class="form-label">Section</label>
                             <input type="text" class="form-control" id="section" name="section" 
                                    value="{{ student.section }}" placeholder="e.g., A, B, C">
+                        </div>
+                    </div>
+                    
+                    <h5 class="mt-4 mb-3" style="color: #0d6efd;">Contact Information</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="text" class="form-control" id="phone" name="phone" 
+                                   value="{{ student.phone }}" placeholder="09XX XXX XXXX">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <input type="text" class="form-control" id="address" name="address" 
+                                   value="{{ student.address }}" placeholder="Complete Address">
+                        </div>
+                    </div>
+                    
+                    <h5 class="mt-4 mb-3" style="color: #0d6efd;">Guardian Information</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="guardian_name" class="form-label">Guardian Name</label>
+                            <input type="text" class="form-control" id="guardian_name" name="guardian_name" 
+                                   value="{{ student.guardian_name }}" placeholder="Parent/Guardian Name">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="guardian_contact" class="form-label">Guardian Contact</label>
+                            <input type="text" class="form-control" id="guardian_contact" name="guardian_contact" 
+                                   value="{{ student.guardian_contact }}" placeholder="09XX XXX XXXX">
                         </div>
                     </div>
                     

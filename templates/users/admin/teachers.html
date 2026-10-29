@@ -44,18 +44,25 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
+                        <th style="width: 60px;">Photo</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Department</th>
+                        <th>Specialization</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for teacher in teachers %}
                     <tr>
+                        <td>
+                            <img src="{{ teacher.get_profile_picture_url }}" alt="{{ teacher.get_full_name }}" 
+                                 class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                        </td>
                         <td><strong>{{ teacher.get_full_name }}</strong></td>
                         <td>{{ teacher.email }}</td>
                         <td>{{ teacher.department|default:"-" }}</td>
+                        <td>{{ teacher.specialization|default:"-" }}</td>
                         <td>
                             <a href="{% url 'admin_teacher_edit' teacher.teacher_id %}" 
                                class="btn btn-sm btn-outline-primary">Edit</a>
@@ -68,7 +75,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="text-center text-muted py-4">No teachers found</td>
+                        <td colspan="6" class="text-center text-muted py-4">No teachers found</td>
                     </tr>
                     {% endfor %}
                 </tbody>

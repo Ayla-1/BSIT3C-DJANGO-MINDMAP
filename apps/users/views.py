@@ -135,6 +135,15 @@ def admin_student_edit(request, student_id):
             student.year_level = request.POST.get('year_level') or None
             student.section = request.POST.get('section')
             student.enrollment_date = request.POST.get('enrollment_date') or None
+            student.phone = request.POST.get('phone', '')
+            student.address = request.POST.get('address', '')
+            student.guardian_name = request.POST.get('guardian_name', '')
+            student.guardian_contact = request.POST.get('guardian_contact', '')
+            
+            # Handle profile picture upload
+            if 'profile_picture' in request.FILES:
+                student.profile_picture = request.FILES['profile_picture']
+            
             student.save()
             
             messages.success(request, f'Student {student.get_full_name()} updated successfully!')
@@ -244,6 +253,15 @@ def admin_teacher_edit(request, teacher_id):
             teacher.last_name = request.POST.get('last_name')
             teacher.email = request.POST.get('email')
             teacher.department = request.POST.get('department')
+            teacher.phone = request.POST.get('phone', '')
+            teacher.specialization = request.POST.get('specialization', '')
+            teacher.qualification = request.POST.get('qualification', '')
+            teacher.bio = request.POST.get('bio', '')
+            
+            # Handle profile picture upload
+            if 'profile_picture' in request.FILES:
+                teacher.profile_picture = request.FILES['profile_picture']
+            
             teacher.save()
             
             messages.success(request, f'Teacher {teacher.get_full_name()} updated successfully!')
