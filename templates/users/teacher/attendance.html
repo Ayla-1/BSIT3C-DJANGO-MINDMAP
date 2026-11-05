@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Student Attendance - Teacher{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h1>📋 Student Attendance</h1>
+            <p class="mb-0">Record daily attendance for your students</p>
+        </div>
+        <div>
+            <span class="badge bg-primary" style="font-size: 1rem; padding: 8px 16px;">
+                {{ attendance_date|date:"l, F d, Y" }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Subject</label>
+                <select name="subject" class="form-select" onchange="this.form.submit()">
+                    {% for subj in subjects %}
+                    <option value="{{ subj.pk }}" {% if subj.pk == subject.pk %}selected{% endif %}>
+                        {{ subj.subject_code }} - {{ subj.subject_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            {% if sections.exists %}
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Section</label>
+                <select name="section" class="form-select" onchange="this.form.submit()">
+                    {% for sec in sections %}
+                    <option value="{{ sec.pk }}" {% if section and sec.pk == section.pk %}selected{% endif %}>
+                        {{ sec.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Date</label>
+                <input type="date" name="date" class="form-control" 
+                       value="{{ attendance_date|date:'Y-m-d' }}" 
+                       max="{{ today|date:'Y-m-d' }}"
+                       onchange="this.form.submit()">
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Attendance Summary -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center" style="border-left: 4px solid #198754;">
+            <div class="card-body">
+                <h3 class="mb-0" style="color: #198754; font-size: 2rem;">{{ summary.Present }}</h3>
+                <p class="text-muted mb-0">Present</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center" style="border-left: 4px solid #dc3545;">
+            <div class="card-body">
+                <h3 class="mb-0" style="color: #dc3545; font-size: 2rem;">{{ summary.Absent }}</h3>
+                <p class="text-muted mb-0">Absent</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center" style="border-left: 4px solid #ffc107;">
+            <div class="card-body">
+                <h3 class="mb-0" style="color: #ffc107; font-size: 2rem;">{{ summary.Late }}</h3>
+                <p class="text-muted mb-0">Late</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center" style="border-left: 4px solid #0d6efd;">
+            <div class="card-body">
+                <h3 class="mb-0" style="color: #0d6efd; font-size: 2rem;">{{ summary.Excused|default:0 }}</h3>
+                <p class="text-muted mb-0">Excused</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Form -->
+<div class="card">
+    <div class="card-header" style="background: linear-gradient(90deg, #0d6efd 0%, #6ea8fe 100%); color: white;">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0">Mark Attendance</h3>
+            <span class="badge bg-light text-dark">{{ students_total }} Students</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="subject" value="{{ subject.pk }}">
+            <input type="hidden" name="section" value="{{ section.pk }}">
+            <input type="hidden" name="date" value="{{ attendance_date|date:'Y-m-d' }}">
+            
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background-color: #f8f9fa;">
+                        <tr>
+                            <th style="width: 50px;">#</th>
+                            <th>Student Number</th>
+                            <th>Name</th>
+                            <th style="width: 200px; text-align: center;">Status</th>
+                            <th style="width: 300px;">Notes (Optional)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><strong>{{ row.student.student_number }}</strong></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="{{ row.student.get_profile_picture_url }}" 
+                                         alt="{{ row.student.get_full_name }}"
+                                         class="rounded-circle"
+                                         style="width: 32px; height: 32px; object-fit: cover;">
+                                    <strong>{{ row.student.get_full_name }}</strong>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <select name="status_{{ row.student.pk }}" class="form-select form-select-sm"
+                                        style="max-width: 150px; margin: 0 auto;">
+                                    <option value="">Present</option>
+                                    {% for choice_value, choice_label in status_choices %}
+                                    <option value="{{ choice_value }}" 
+                                            {% if row.record and row.record.status == choice_value %}selected{% endif %}>
+                                        {{ choice_label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" 
+                                       name="notes_{{ row.student.pk }}" 
+                                       class="form-control form-control-sm"
+                                       placeholder="Reason or comments..."
+                                       value="{{ row.record.notes|default:'' }}">
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <i style="font-size: 3rem; opacity: 0.3;">👥</i>
+                                <p class="mt-2 mb-0">No students found for this section</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if rows %}
+            <div class="card-footer" style="background: #f8f9fa;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted">
+                        <small><i>💡 Tip: Leave status as "Present" for students who attended. Only mark exceptions.</i></small>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        💾 Save Attendance
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Recent Attendance Records -->
+{% if records %}
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 class="card-title">Recent Attendance Records</h3>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead style="background-color: #f8f9fa;">
+                    <tr>
+                        <th>Date</th>
+                        <th>Student</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td><small>{{ record.date|date:"M d, Y" }}</small></td>
+                        <td><small><strong>{{ record.student.get_full_name }}</strong></small></td>
+                        <td><small>{{ record.subject.subject_code }}</small></td>
+                        <td>
+                            <span class="badge badge-sm 
+                                {% if record.status == 'Present' %}bg-success
+                                {% elif record.status == 'Absent' %}bg-danger
+                                {% elif record.status == 'Late' %}bg-warning
+                                {% else %}bg-info{% endif %}">
+                                {{ record.status }}
+                            </span>
+                        </td>
+                        <td><small class="text-muted">{{ record.notes|default:"-" }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

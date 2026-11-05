@@ -38,11 +38,20 @@
             font-weight: 600;
         }
 
+        .navbar .navbar-brand {
+            font-size: 1.05rem;
+            line-height: 1.2;
+            max-width: 100%;
+            white-space: normal;
+        }
+
         .navbar .nav-link:hover { color: #dcd8ff !important; }
 
         .navbar .brand-sub {
             display: block;
             font-size: 0.66rem;
+            line-height: 1.3;
+            margin-top: 0.1rem;
             font-weight: 500;
             letter-spacing: 0.08em;
             text-transform: uppercase;
@@ -154,18 +163,19 @@
         }
 
         .page-header {
-            display: flex;
-            flex-direction: row !important;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
+            display: block;
             background: linear-gradient(120deg, #312e81 0%, #4f46e5 55%, #6366f1 100%);
             padding: 1.6rem 1.8rem;
             border-radius: 16px;
             margin-bottom: 1.4rem;
             color: white;
         }
+        .page-header.d-flex {
+            flex-direction: row;
+            align-items: center;
+            gap: 1rem;
+        }
+
         .page-header h1 { color: white; font-size: 1.6rem; font-weight: 800; margin: 0; }
         .page-header p { margin: 0.35rem 0 0; opacity: 0.85; }
         .page-header .pretitle {
@@ -309,7 +319,7 @@
             <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'dashboard' %}">
                 <span>🎓</span>
                 <span>
-                    MindMap HS
+                    MindMap: Student Academic Progress Monitoring System
                     <span class="brand-sub">High School Academic Monitoring</span>
                 </span>
             </a>

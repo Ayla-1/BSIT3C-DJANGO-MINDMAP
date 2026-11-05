@@ -17,7 +17,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from apps.core.models import UserProfile
 from apps.users.access import get_teacher, student_for_user, teacher_subjects
-from apps.users.analytics import overall_average, student_snapshot
+from apps.users.analytics import student_snapshot
 
 User = get_user_model()
 

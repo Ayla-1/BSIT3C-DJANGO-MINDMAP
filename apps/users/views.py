@@ -13,9 +13,8 @@ from functools import wraps
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Q
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
 
 from apps.core.models import UserProfile
 
@@ -44,6 +43,7 @@ from .models import (
     QUARTER_CHOICES,
     AcademicProgress,
     Announcement,
+    Attendance,
     Grade,
     LearningAssessment,
     Section,
@@ -104,10 +104,6 @@ def _student_or_none(request):
     if student is None:
         messages.error(request, 'No student record is linked to this account.')
     return student
-
-
-def _client_ip(request):
-    return request.META.get('REMOTE_ADDR', '')
 
 
 # ==================== ADMIN VIEWS ====================
@@ -774,6 +770,102 @@ def teacher_gradebook(request):
 
 @login_required
 @role_required('teacher')
+def teacher_attendance(request):
+    teacher = _current_teacher(request)
+    if teacher is None:
+        return redirect('dashboard')
+
+    subjects = teacher_subjects(teacher)
+
+    subject = None
+    subject_id = request.POST.get('subject') or request.GET.get('subject')
+    if subject_id:
+        subject = teacher_subject_or_404(teacher, subject_id)
+    elif subjects.exists():
+        subject = subjects.first()
+
+    if subject is None:
+        messages.error(request, 'You have no assigned subject yet.')
+        return redirect('teacher_dashboard')
+
+    section = None
+    section_id = request.POST.get('section') or request.GET.get('section')
+    if section_id:
+        section = get_object_or_404(subject.sections.all(), pk=section_id)
+    else:
+        section = subject.sections.first()
+
+    raw_date = request.POST.get('date') or request.GET.get('date')
+    try:
+        attendance_date = date.fromisoformat(raw_date) if raw_date else date.today()
+    except ValueError:
+        messages.error(request, 'Please choose a valid attendance date.')
+        attendance_date = date.today()
+
+    students = teacher_students(teacher).filter(section=section) if section else teacher_students(teacher).none()
+
+    if request.method == 'POST':
+        if section is None:
+            messages.error(request, 'This subject has no section yet. Ask the administrator to assign one.')
+            return redirect(f'{request.path}?subject={subject.pk}')
+
+        for student in students:
+            status = (request.POST.get(f'status_{student.pk}') or '').strip()
+            notes = (request.POST.get(f'notes_{student.pk}') or '').strip()
+            if status in dict(Attendance.STATUS_CHOICES):
+                Attendance.objects.update_or_create(
+                    student=student,
+                    subject=subject,
+                    date=attendance_date,
+                    defaults={'status': status, 'notes': notes or None, 'teacher': teacher},
+                )
+            else:
+                # Cleared means the student was present, so no record is kept.
+                Attendance.objects.filter(
+                    student=student, subject=subject, date=attendance_date,
+                ).delete()
+
+        messages.success(
+            request,
+            f'Attendance saved for {subject.name} - {section.name} ({attendance_date:%b %d, %Y}).',
+        )
+        return redirect(
+            f"{request.path}?subject={subject.pk}&section={section.pk}&date={attendance_date:%Y-%m-%d}"
+        )
+
+    recorded = {
+        record.student_id: record
+        for record in Attendance.objects.filter(
+            subject=subject, date=attendance_date, student__in=students,
+        )
+    }
+    rows = [{'student': student, 'record': recorded.get(student.pk)} for student in students]
+
+    summary = {'Absent': 0, 'Excuse': 0, 'Late': 0}
+    for record in recorded.values():
+        summary[record.status] = summary.get(record.status, 0) + 1
+    summary['Present'] = students.count() - len(recorded)
+
+    return render(request, 'users/teacher/attendance.html', {
+        'teacher': teacher,
+        'subjects': subjects,
+        'subject': subject,
+        'section': section,
+        'sections': subject.sections.all(),
+        'students_total': students.count(),
+        'rows': rows,
+        'attendance_date': attendance_date,
+        'status_choices': Attendance.STATUS_CHOICES,
+        'summary': summary,
+        'records': Attendance.objects.filter(subject__teacher=teacher)
+        .select_related('student', 'subject')
+        .order_by('-date', 'student__last_name')[:40],
+        'today': date.today(),
+    })
+
+
+@login_required
+@role_required('teacher')
 def teacher_grades(request):
     teacher = _current_teacher(request)
     if teacher is None:
@@ -1119,6 +1211,70 @@ def student_progress(request):
         'groups': groups,
         'history': history.order_by('-record_date', '-pk'),
     })
+
+
+@login_required
+@role_required('student')
+def student_attendance(request):
+    """View student's own attendance records"""
+    try:
+        student = Student.objects.get(student_number=request.user.username)
+    except Student.DoesNotExist:
+        messages.error(request, 'Student profile not found.')
+        return redirect('dashboard')
+    
+    # Get filter parameters
+    subject_filter = request.GET.get('subject', '')
+    month_filter = request.GET.get('month', '')
+    
+    # Get attendance records
+    attendance_records = Attendance.objects.filter(student=student).select_related('subject', 'teacher')
+    
+    if subject_filter:
+        attendance_records = attendance_records.filter(subject_id=subject_filter)
+    
+    if month_filter:
+        try:
+            year, month = month_filter.split('-')
+            attendance_records = attendance_records.filter(date__year=year, date__month=month)
+        except ValueError:
+            pass
+    
+    attendance_records = attendance_records.order_by('-date')
+    
+    # Calculate statistics
+    total_records = attendance_records.count()
+    present_count = attendance_records.exclude(status__in=['Absent', 'Late', 'Excused']).count()
+    absent_count = attendance_records.filter(status='Absent').count()
+    late_count = attendance_records.filter(status='Late').count()
+    excused_count = attendance_records.filter(status='Excused').count()
+    
+    # Calculate attendance rate
+    if total_records > 0:
+        attendance_rate = ((present_count + excused_count) / total_records) * 100
+    else:
+        attendance_rate = 100
+    
+    # Get subjects for filter
+    subjects = Subject.objects.filter(
+        pk__in=attendance_records.values_list('subject_id', flat=True).distinct()
+    ).order_by('subject_code')
+    
+    context = {
+        'student': student,
+        'attendance_records': attendance_records,
+        'subjects': subjects,
+        'subject_filter': subject_filter,
+        'month_filter': month_filter,
+        'total_records': total_records,
+        'present_count': present_count,
+        'absent_count': absent_count,
+        'late_count': late_count,
+        'excused_count': excused_count,
+        'attendance_rate': attendance_rate,
+    }
+    
+    return render(request, 'users/student/attendance.html', context)
 
 
 def teacher_subjects_for_student(student):

@@ -35,6 +35,7 @@ urlpatterns = [
     path('teacher/students/', user_views.teacher_students_view, name='teacher_students'),
     path('teacher/students/<int:student_id>/', user_views.teacher_student_detail, name='teacher_student_detail'),
     path('teacher/gradebook/', user_views.teacher_gradebook, name='teacher_gradebook'),
+    path('teacher/attendance/', user_views.teacher_attendance, name='teacher_attendance'),
     path('teacher/grades/', user_views.teacher_grades, name='teacher_grades'),
     path('teacher/assessments/', user_views.teacher_assessments, name='teacher_assessments'),
     path('teacher/assessments/create/', user_views.teacher_assessment_create, name='teacher_assessment_create'),
@@ -52,4 +53,5 @@ urlpatterns = [
     path('student/grades/', user_views.student_grades, name='student_grades'),
     path('student/assessments/', user_views.student_assessments, name='student_assessments'),
     path('student/progress/', user_views.student_progress, name='student_progress'),
+    path('student/attendance/', user_views.student_attendance, name='student_attendance'),
 ]

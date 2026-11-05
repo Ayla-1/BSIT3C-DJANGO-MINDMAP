@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}My Attendance - MindMap{% endblock %}
+
+{% block sidebar %}
+<a class="nav-link" href="{% url 'student_dashboard' %}"><i>📊</i> Dashboard</a>
+<a class="nav-link" href="{% url 'student_grades' %}"><i>📝</i> My Grades</a>
+<a class="nav-link" href="{% url 'student_assessments' %}"><i>📋</i> Assessments</a>
+<a class="nav-link" href="{% url 'student_progress' %}"><i>📈</i> Progress</a>
+<a class="nav-link active" href="{% url 'student_attendance' %}"><i>📅</i> Attendance</a>
+<hr style="border-color: var(--blue-light); margin: 1rem 0.5rem;">
+<a class="nav-link text-danger" href="{% url 'logout' %}"><i>🚪</i> Logout</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="page-header mb-4">
+    <h1>📅 My Attendance</h1>
+    <p class="mb-0">View your attendance records and statistics</p>
+</div>
+
+<!-- Attendance Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center" style="border-left: 4px solid #198754;">
+            <div class="card-body">
+                <div style="font-size: 2rem; font-weight: 600; color: #198754;">{{ attendance_rate|floatformat:1 }}%</div>
+                <p class="mb-0 text-muted">Attendance Rate</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center" style="border-left: 4px solid #dc3545;">
+            <div class="card-body">
+                <div style="font-size: 2rem; font-weight: 600; color: #dc3545;">{{ absent_count }}</div>
+                <p class="mb-0 text-muted">Absent</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center" style="border-left: 4px solid #ffc107;">
+            <div class="card-body">
+                <div style="font-size: 2rem; font-weight: 600; color: #ffc107;">{{ late_count }}</div>
+                <p class="mb-0 text-muted">Late</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-3">
+        <div class="card text-center" style="border-left: 4px solid #0d6efd;">
+            <div class="card-body">
+                <div style="font-size: 2rem; font-weight: 600; color: #0d6efd;">{{ excused_count }}</div>
+                <p class="mb-0 text-muted">Excused</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Filter by Subject</label>
+                <select name="subject" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Subjects</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.subject_id }}" {% if subject_filter == subject.subject_id|stringformat:"s" %}selected{% endif %}>
+                        {{ subject.subject_code }} - {{ subject.subject_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Filter by Month</label>
+                <input type="month" name="month" class="form-control" value="{{ month_filter }}" onchange="this.form.submit()">
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Attendance Records -->
+<div class="card">
+    <div class="card-header" style="background: linear-gradient(90deg, #0d6efd 0%, #6ea8fe 100%); color: white;">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0">Attendance Records</h3>
+            <span class="badge bg-light text-dark">{{ total_records }} Total</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead style="background-color: #f8f9fa;">
+                    <tr>
+                        <th style="padding: 12px;">Date</th>
+                        <th style="padding: 12px;">Subject</th>
+                        <th style="padding: 12px;">Teacher</th>
+                        <th style="padding: 12px; text-align: center;">Status</th>
+                        <th style="padding: 12px;">Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                    <tr>
+                        <td style="padding: 12px;">
+                            <strong>{{ record.date|date:"M d, Y" }}</strong>
+                            <br>
+                            <small class="text-muted">{{ record.date|date:"l" }}</small>
+                        </td>
+                        <td style="padding: 12px;">
+                            <strong style="color: #0d6efd;">{{ record.subject.subject_code }}</strong>
+                            <br>
+                            <small class="text-muted">{{ record.subject.subject_name }}</small>
+                        </td>
+                        <td style="padding: 12px;">
+                            <small>{{ record.teacher.get_full_name|default:"N/A" }}</small>
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            {% if record.status == 'Present' %}
+                                <span class="badge bg-success" style="padding: 6px 12px; font-size: 0.9rem;">✓ Present</span>
+                            {% elif record.status == 'Absent' %}
+                                <span class="badge bg-danger" style="padding: 6px 12px; font-size: 0.9rem;">✗ Absent</span>
+                            {% elif record.status == 'Late' %}
+                                <span class="badge bg-warning text-dark" style="padding: 6px 12px; font-size: 0.9rem;">⏰ Late</span>
+                            {% elif record.status == 'Excused' %}
+                                <span class="badge bg-info" style="padding: 6px 12px; font-size: 0.9rem;">📋 Excused</span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px;">
+                            <small class="text-muted">{{ record.notes|default:"-" }}</small>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted" style="padding: 60px;">
+                            <i style="font-size: 4rem; opacity: 0.2;">📅</i>
+                            <p class="mt-3 mb-0">No attendance records yet</p>
+                            <small>Your teachers will record attendance during class</small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Legend -->
+<div class="card mt-4">
+    <div class="card-body">
+        <h5 class="mb-3">📖 Attendance Status Legend</h5>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <span class="badge bg-success" style="font-size: 0.9rem;">✓ Present</span>
+                <p class="mb-0 mt-1"><small class="text-muted">Student attended the class</small></p>
+            </div>
+            <div class="col-md-3">
+                <span class="badge bg-danger" style="font-size: 0.9rem;">✗ Absent</span>
+                <p class="mb-0 mt-1"><small class="text-muted">Student did not attend</small></p>
+            </div>
+            <div class="col-md-3">
+                <span class="badge bg-warning text-dark" style="font-size: 0.9rem;">⏰ Late</span>
+                <p class="mb-0 mt-1"><small class="text-muted">Student arrived late</small></p>
+            </div>
+            <div class="col-md-3">
+                <span class="badge bg-info" style="font-size: 0.9rem;">📋 Excused</span>
+                <p class="mb-0 mt-1"><small class="text-muted">Absence with valid reason</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

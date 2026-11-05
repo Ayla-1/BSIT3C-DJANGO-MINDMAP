@@ -373,6 +373,37 @@ class AcademicProgress(models.Model):
         return f'{self.student.student_number} - {self.subject.name} - {self.record_date}'
 
 
+class Attendance(models.Model):
+    """Daily attendance of a student in one subject, recorded by its teacher."""
+
+    STATUS_CHOICES = [
+        ('Present', 'Present'),
+        ('Absent', 'Absent'),
+        ('Excused', 'Excused'),
+        ('Late', 'Late'),
+    ]
+
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='attendance_records')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='attendance_records')
+    teacher = models.ForeignKey(
+        Teacher, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='attendance_records',
+    )
+    date = models.DateField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Present')
+    notes = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-pk']
+        unique_together = ('student', 'subject', 'date')
+        verbose_name_plural = 'attendance'
+
+    def __str__(self):
+        return f'{self.student.student_number} - {self.subject.subject_code} - {self.date}: {self.status}'
+
+
 class Announcement(models.Model):
     AUDIENCE_CHOICES = [
         ('all', 'Everyone'),
