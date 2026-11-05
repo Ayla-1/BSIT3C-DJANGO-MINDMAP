@@ -8,6 +8,7 @@
         <p>{{ teacher.department|default:"Faculty" }} • {{ teacher.subjects.count }} assigned subjects • School Year {{ current_year }}</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'teacher_attendance' %}" class="btn btn-primary btn-sm fw-bold">📋 Record Attendance</a>
         <a href="{% url 'teacher_gradebook' %}" class="btn btn-light btn-sm fw-bold">📝 Encode grades</a>
         <a href="{% url 'teacher_progress_create' %}" class="btn btn-light btn-sm fw-bold">📈 Add progress note</a>
     </div>
